@@ -12,6 +12,12 @@
 #include <QOpenGLWidget>
 #include <QTime>
 #include <QTimer>
+#include "utils/sceneparser.h"
+#include "shapes/Cone.h"
+#include "shapes/Cube.h"
+#include "shapes/Cylinder.h"
+#include "shapes/Sphere.h"
+#include "camera/camera.h"
 
 class Realtime : public QOpenGLWidget
 {
@@ -49,4 +55,18 @@ private:
 
     // Device Correction Variables
     double m_devicePixelRatio;
+
+    GLuint m_shader; // Stores id of shader program
+    GLuint m_cone_vbo, m_cube_vbo, m_cylinder_vbo, m_sphere_vbo;
+    GLuint m_cone_vao, m_cube_vao, m_cylinder_vao, m_sphere_vao;
+
+    Cone* m_cone;
+    Cube* m_cube;
+    Cylinder* m_cylinder;
+    Sphere* m_sphere;
+
+    RenderData m_renderData;
+
+    Camera* m_camera;
+
 };
