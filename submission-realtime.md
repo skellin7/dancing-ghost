@@ -58,7 +58,11 @@ https://github.com/BrownCSCI1230/projects_realtime_template/assets/45575415/710f
 ##### Your Output
 
 <!---
-Paste your output on top of this comment!
+Paste your output on t
+
+https://github.com/user-attachments/assets/48bd72dd-91bd-4d9e-9aa3-1d23716dbe8b
+
+op of this comment!
 -->
 
 #### Camera Rotation
@@ -72,7 +76,11 @@ https://github.com/BrownCSCI1230/projects_realtime_template/assets/45575415/a14f
 ##### Your Output
 
 <!---
-Paste your output on top of this comment!
+Paste your output on top of this 
+
+https://github.com/user-attachments/assets/f3df0f4d-d7f8-46eb-9be7-03bee42b3a1b
+
+comment!
 -->
 
 ### Design Choices
