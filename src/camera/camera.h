@@ -17,6 +17,12 @@ public:
     void setNearFar(float near, float far);
     void setWidthHeight(int width, int height);
 
+    void moveLookDir(float dist);
+    void moveSideDir(float dist);
+    void moveUpDir(float dist);
+    void rotateX(float theta);
+    void rotateY(float theta);
+
     // Returns the view matrix for the current camera settings.
     // You might also want to define another function that return the inverse of the view matrix.
     glm::mat4 getViewMatrix() const;
@@ -35,5 +41,11 @@ private:
     float m_heightAngle;
     float m_aspectRatio;
 
+    glm::vec4 m_pos;
+    glm::vec4 m_look;
+    glm::vec4 m_up;
+    glm::vec4 m_side;
+
+    void findViewMatrix();
     void findProjMatrix();
 };

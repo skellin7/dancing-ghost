@@ -293,6 +293,8 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         m_prev_mouse_pos = glm::vec2(posX, posY);
 
         // Use deltaX and deltaY here to rotate
+        m_camera->rotateX(0.005 * deltaX);
+        m_camera->rotateY(0.005 * deltaY);
 
         update(); // asks for a PaintGL() call to occur
     }
@@ -304,6 +306,24 @@ void Realtime::timerEvent(QTimerEvent *event) {
     m_elapsedTimer.restart();
 
     // Use deltaTime and m_keyMap here to move around
+    if (m_keyMap[Qt::Key_W]) {
+        m_camera->moveLookDir(5.f * deltaTime);
+    }
+    if (m_keyMap[Qt::Key_S]) {
+        m_camera->moveLookDir(-5.f * deltaTime);
+    }
+    if (m_keyMap[Qt::Key_A]) {
+        m_camera->moveSideDir(-5.f * deltaTime);
+    }
+    if (m_keyMap[Qt::Key_D]) {
+        m_camera->moveSideDir(5.f * deltaTime);
+    }
+    if (m_keyMap[Qt::Key_Space]) {
+        m_camera->moveUpDir(5.f * deltaTime);
+    }
+    if (m_keyMap[Qt::Key_Control]) {
+        m_camera->moveUpDir(-5.f * deltaTime);
+    }
 
     update(); // asks for a PaintGL() call to occur
 }
