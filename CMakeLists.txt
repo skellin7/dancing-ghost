@@ -27,8 +27,13 @@ include_directories(src)
 add_executable(${PROJECT_NAME}
     src/main.cpp
 
+    src/Animation.cpp
+    src/Animator.cpp
+    src/Bone.cpp
     src/realtime.cpp
     src/mainwindow.cpp
+    src/Mesh.cpp
+    src/Model.cpp
     src/settings.cpp
     src/utils/scenefilereader.cpp
     src/utils/sceneparser.cpp
@@ -38,7 +43,12 @@ add_executable(${PROJECT_NAME}
     src/shapes/Cone.cpp
     src/camera/Camera.cpp
 
+    src/Animation.h
+    src/Animator.h
+    src/Bone.h
     src/mainwindow.h
+    src/Mesh.h
+    src/Model.h
     src/realtime.h
     src/settings.h
     src/utils/scenedata.h
@@ -51,14 +61,18 @@ add_executable(${PROJECT_NAME}
     src/shapes/Cylinder.h
     src/shapes/Cone.h
     src/camera/Camera.h
+    src/utils/assimp_glm_helpers.h
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`
 add_subdirectory(glm)
 
 # GLEW: this creates its library and allows you to `#include "GL/glew.h"`
-add_library(StaticGLEW STATIC glew/src/glew.c)
-include_directories(${PROJECT_NAME} PRIVATE glew/include)
+add_library(StaticGLEW STATIC
+    glew/src/glew.c
+)
+target_include_directories(StaticGLEW PUBLIC glew/include)
+target_include_directories(${PROJECT_NAME} PRIVATE external)
 
 # Specifies libraries to be linked (Qt components, glew, etc)
 target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -96,3 +110,9 @@ endif()
 if (APPLE)
   set(CMAKE_CXX_FLAGS "-Wno-deprecated-volatile")
 endif()
+
+set(CMAKE_PREFIX_PATH "C:/libs/assimp")
+
+find_package(assimp REQUIRED)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE assimp::assimp)

@@ -6,6 +6,7 @@
 #endif
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <unordered_map>
 #include <QElapsedTimer>
@@ -18,6 +19,9 @@
 #include "shapes/Cylinder.h"
 #include "shapes/Sphere.h"
 #include "camera/camera.h"
+#include "Model.h"
+#include "Animation.h"
+#include "Animator.h"
 
 class Realtime : public QOpenGLWidget
 {
@@ -68,5 +72,9 @@ private:
     RenderData m_renderData;
 
     Camera* m_camera;
+
+    Model* m_model;
+    Animation* m_animation;
+    Animator* m_animator;
 
 };
