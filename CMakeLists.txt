@@ -91,6 +91,8 @@ qt6_add_resources(${PROJECT_NAME} "Resources"
     FILES
         resources/shaders/default.frag
         resources/shaders/default.vert
+        resources/shaders/default2.frag
+        resources/shaders/default2.vert
 )
 
 # GLEW: this provides support for Windows (including 64-bit)
@@ -112,7 +114,8 @@ if (APPLE)
 endif()
 
 set(CMAKE_PREFIX_PATH "C:/libs/assimp")
-
 find_package(assimp REQUIRED)
-
 target_link_libraries(${PROJECT_NAME} PRIVATE assimp::assimp)
+
+set(EIGEN3_INCLUDE_DIR "C:/libs/eigen-5.0.1")
+target_include_directories(${PROJECT_NAME} PRIVATE ${EIGEN3_INCLUDE_DIR})

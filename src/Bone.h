@@ -10,54 +10,54 @@
 #include <assimp/postprocess.h>
 #include "utils/assimp_glm_helpers.h"
 
-struct KeyPosition
-{
+// struct to hold position at keyframe
+struct KeyPosition {
     glm::vec3 position;
-    float timeStamp;
+    float timestamp;
 };
 
-struct KeyRotation
-{
+// struct to hold rotation at keyframe
+struct KeyRotation {
     glm::quat orientation;
-    float timeStamp;
+    float timestamp;
 };
 
-struct KeyScale
-{
+// struct to hold scaling at keyframe
+struct KeyScale {
     glm::vec3 scale;
-    float timeStamp;
+    float timestamp;
 };
 
-class Bone
-{
-private:
-    std::vector<KeyPosition> m_Positions;
-    std::vector<KeyRotation> m_Rotations;
-    std::vector<KeyScale> m_Scales;
-    int m_NumPositions;
-    int m_NumRotations;
-    int m_NumScalings;
-
-    glm::mat4 m_LocalTransform;
-    std::string m_Name;
-    int m_ID;
-
-    float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime);
-    glm::mat4 InterpolatePosition(float animationTime);
-    glm::mat4 InterpolateRotation(float animationTime);
-    glm::mat4 InterpolateScaling(float animationTime);
-
+// class to handle all data for a specific bone within skeleton
+class Bone {
 public:
     Bone(const std::string& name, int ID, const aiNodeAnim* channel);
 
-    void Update(float animationTime);
+    void update(float time);
 
-    glm::mat4 GetLocalTransform();
-    std::string GetBoneName() const;
-    int GetBoneID();
-    int GetNumPositionKeys() { return m_NumPositions; }
+    inline glm::mat4 getLocalTransform() { return m_localTransform; }
+    inline std::string getBoneName() const { return m_name; }
+    inline int getBoneID() { return m_id; }
+    inline int getNumPositionKeys() { return m_numPositions; }
 
-    int GetPositionIndex(float animationTime);
-    int GetRotationIndex(float animationTime);
-    int GetScaleIndex(float animationTime);
+    int getPositionIndex(float time);
+    int getRotationIndex(float time);
+    int getScaleIndex(float time);
+private:
+    std::vector<KeyPosition> m_positions;
+    std::vector<KeyRotation> m_rotations;
+    std::vector<KeyScale> m_scales;
+    int m_numPositions;
+    int m_numRotations;
+    int m_numScalings;
+
+    glm::mat4 m_localTransform;
+    std::string m_name;
+    int m_id;
+
+    float getScaleFactor(float lastTimeStamp, float nextTimeStamp, float time);
+    glm::mat4 interpolatePosition(float time);
+    glm::mat4 interpolateRotation(float time);
+    glm::mat4 interpolateScaling(float time);
+
 };

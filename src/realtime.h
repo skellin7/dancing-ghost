@@ -7,6 +7,8 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/string_cast.hpp>
+#include <glm/ext.hpp>
 
 #include <unordered_map>
 #include <QElapsedTimer>
@@ -22,6 +24,22 @@
 #include "Model.h"
 #include "Animation.h"
 #include "Animator.h"
+#include <Eigen/Dense>
+
+struct Joint {
+    std::string name;
+    Joint* parent = nullptr;
+
+    glm::vec3 localPosition;
+    glm::quat localRotation;
+
+    glm::quat worldRotation;
+
+    glm::mat4 localTransform;
+    glm::mat4 worldTransform;
+
+    bool dofX, dofY, dofZ;
+};
 
 class Realtime : public QOpenGLWidget
 {
@@ -61,13 +79,6 @@ private:
     double m_devicePixelRatio;
 
     GLuint m_shader; // Stores id of shader program
-    GLuint m_cone_vbo, m_cube_vbo, m_cylinder_vbo, m_sphere_vbo;
-    GLuint m_cone_vao, m_cube_vao, m_cylinder_vao, m_sphere_vao;
-
-    Cone* m_cone;
-    Cube* m_cube;
-    Cylinder* m_cylinder;
-    Sphere* m_sphere;
 
     RenderData m_renderData;
 
@@ -76,5 +87,15 @@ private:
     Model* m_model;
     Animation* m_animation;
     Animator* m_animator;
+
+    GLuint m_lineVAO, m_lineVBO;
+    GLuint m_circleVAO, m_circleVBO;
+
+    glm::mat4 m_VP;
+
+    glm::vec3 m_ikTarget = glm::vec3(0.f);
+    float m_ikPlaneZ = 0.f;
+
+    std::vector<Joint*> m_chain;
 
 };

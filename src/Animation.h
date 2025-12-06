@@ -12,16 +12,16 @@
 #include "Model.h"
 #include "utils/assimp_glm_helpers.h"
 
-struct AssimpNodeData
-{
+// struct holding node data as a tree
+struct AssimpNodeData {
     glm::mat4 transformation;
     std::string name;
     int childrenCount;
     std::vector<AssimpNodeData> children;
 };
 
-class Animation
-{
+// class to hold data for skeleton as a whole
+class Animation {
 public:
     Animation() = default;
 
@@ -29,27 +29,27 @@ public:
 
     ~Animation() {}
 
-    Bone* FindBone(const std::string& name);
+    Bone* findBone(const std::string& name);
 
-    inline float GetTicksPerSecond() { return m_TicksPerSecond; }
+    inline float getTicksPerSecond() { return m_ticksPerSec; }
 
-    inline float GetDuration() { return m_Duration;}
+    inline float getDuration() { return m_duration;}
 
-    inline const AssimpNodeData& GetRootNode() { return m_RootNode; }
+    inline const AssimpNodeData& getRootNode() { return m_root; }
 
-    inline const std::map<std::string,BoneInfo>& GetBoneIDMap()
+    inline const std::map<std::string, BoneInfo>& getBoneIDMap()
     {
-        return m_BoneInfoMap;
+        return m_boneInfoMap;
     }
 
 private:
-    void ReadMissingBones(const aiAnimation* animation, Model& model);
+    void readMissingBones(const aiAnimation* animation, Model& model);
 
-    void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src);
+    void readHierarchyData(AssimpNodeData& dest, const aiNode* src);
 
-    float m_Duration;
-    int m_TicksPerSecond;
-    std::vector<Bone> m_Bones;
-    AssimpNodeData m_RootNode;
-    std::map<std::string, BoneInfo> m_BoneInfoMap;
+    float m_duration;
+    int m_ticksPerSec;
+    std::vector<Bone> m_bones;
+    AssimpNodeData m_root;
+    std::map<std::string, BoneInfo> m_boneInfoMap;
 };

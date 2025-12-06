@@ -10,21 +10,22 @@
 #include "Animation.h"
 #include "Bone.h"
 
-class Animator
-{
+// class to run given animation by calculating world transforms for each bone
+
+class Animator {
 public:
     Animator(Animation* Animation);
 
-    void UpdateAnimation(float dt);
-    void PlayAnimation(Animation* pAnimation);
+    void updateAnimation(float dt);
+    void playAnimation(Animation* pAnimation);
 
-    void CalculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform);
+    void calculateBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform);
 
-    std::vector<glm::mat4> GetFinalBoneMatrices();
+    inline std::vector<glm::mat4> getFinalBoneMatrices() { return m_finalBoneMatrices; }
 
 private:
-    std::vector<glm::mat4> m_FinalBoneMatrices;
-    Animation* m_CurrentAnimation;
-    float m_CurrentTime;
-    float m_DeltaTime;
+    std::vector<glm::mat4> m_finalBoneMatrices;
+    Animation* m_animation;
+    float m_currTime;
+    float m_deltaTime;
 };
