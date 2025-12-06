@@ -5,10 +5,7 @@ The project handout can be found [here](https://cs1230.graphics/projects/final/g
 ### Test Cases
 
 
-
-Insert your test cases here. Be sure to include images/videos as needed!
-
-Kinematic Skeletons + Linear Blend Skinning
+#### Kinematic Skeletons + Linear Blend Skinning
 - Renders vampire (hard-coded input file) defined by a mesh and shaded with textures
 - Creates kinematic skeleton of vampire based on defined bone structure
 - Vampire's mesh undergoes transformations based on bones assigned to each vertex within mesh
@@ -16,7 +13,7 @@ Kinematic Skeletons + Linear Blend Skinning
 
 https://github.com/user-attachments/assets/e4252a81-b7bc-425c-b63b-0789c8fbe4ea
 
-Kinematic Skeletons + Inverse Kinematics
+#### Kinematic Skeletons + Inverse Kinematics
 - Renders line art stick figure drawing representing skeleton of a person
 - Creates kinematic skeleton of person based on simple bone structure
 - When mouse is dragged, right wrist bone attempts to follow mouse position
