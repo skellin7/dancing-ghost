@@ -22,6 +22,7 @@
 #include "shapes/Sphere.h"
 #include "camera/camera.h"
 #include <Eigen/Dense>
+#include "src/cloth.h"
 
 struct Joint {
     std::string name;
@@ -63,6 +64,16 @@ private:
     void mouseMoveEvent(QMouseEvent *event) override;
     void timerEvent(QTimerEvent *event) override;
 
+    //Cloth Methods
+    void clothvbovaoGeneration();
+    void simulate(float deltaTime);
+    std::vector<glm::vec3> computeForces(float deltaTime);
+    void verletIntegration(std::vector<glm::vec3> forces, float deltaTime);
+    void solveCollisions(int iterations, float deltaTime);
+    void solveClothToClothCollisions(int iterations, float deltaTime);
+    void constrainSprings(int iterations);
+    glm::vec3 friction(glm::vec3 velocity, glm::vec3 normal);
+
     // Tick Related Variables
     int m_timer;                                        // Stores timer which attempts to run ~60 times per second
     QElapsedTimer m_elapsedTimer;                       // Stores timer which keeps track of actual time between frames
@@ -90,5 +101,14 @@ private:
     float m_ikPlaneZ = 0.f;
 
     std::vector<Joint*> m_chain;
+
+    //Cloth
+    Cloth* m_cloth;
+    GLuint m_cloth_vbo;
+    GLuint m_cloth_vao;
+    GLuint m_spring_vbo;
+    GLuint m_spring_vao;
+    GLuint m_cloth_ebo;
+    GLuint m_cloth_shader;
 
 };
