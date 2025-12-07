@@ -631,31 +631,31 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         m_camera->rotateX(0.005 * deltaX);
         m_camera->rotateY(0.005 * deltaY);
 
-        // float mx = event->position().x();
-        // float my = event->position().y();
+        float mx = event->position().x();
+        float my = event->position().y();
 
-        // // Convert mouse position → normalized device coords
-        // float x = (2.0f * mx) / width() - 1.0f;
-        // float y = 1.0f - (2.0f * my) / height();
+        // Convert mouse position → normalized device coords
+        float x = (2.0f * mx) / width() - 1.0f;
+        float y = 1.0f - (2.0f * my) / height();
 
-        // glm::vec4 rayStartNDC(x, y, -1.0f, 1.0f);
-        // glm::vec4 rayEndNDC  (x, y,  1.0f, 1.0f);
+        glm::vec4 rayStartNDC(x, y, -1.0f, 1.0f);
+        glm::vec4 rayEndNDC  (x, y,  1.0f, 1.0f);
 
-        // glm::mat4 invVP = glm::inverse(m_VP);
+        glm::mat4 invVP = glm::inverse(m_VP);
 
-        // glm::vec4 rayStartWorld = invVP * rayStartNDC;
-        // rayStartWorld /= rayStartWorld.w;
+        glm::vec4 rayStartWorld = invVP * rayStartNDC;
+        rayStartWorld /= rayStartWorld.w;
 
-        // glm::vec4 rayEndWorld = invVP * rayEndNDC;
-        // rayEndWorld /= rayEndWorld.w;
+        glm::vec4 rayEndWorld = invVP * rayEndNDC;
+        rayEndWorld /= rayEndWorld.w;
 
-        // glm::vec3 r0 = glm::vec3(rayStartWorld);
-        // glm::vec3 r1 = glm::vec3(rayEndWorld);
-        // glm::vec3 dir = glm::normalize(r1 - r0);
+        glm::vec3 r0 = glm::vec3(rayStartWorld);
+        glm::vec3 r1 = glm::vec3(rayEndWorld);
+        glm::vec3 dir = glm::normalize(r1 - r0);
 
-        // // Intersect ray with plane z = ikPlaneZ
-        // float t = (m_ikPlaneZ - r0.z) / dir.z;
-        // m_ikTarget = r0 + t * dir;
+        // Intersect ray with plane z = ikPlaneZ
+        float t = (m_ikPlaneZ - r0.z) / dir.z;
+        m_ikTarget = r0 + t * dir;
 
         update(); // asks for a PaintGL() call to occur
     }
