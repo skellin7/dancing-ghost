@@ -89,187 +89,187 @@ void Realtime::verletIntegration(std::vector<glm::vec3> forces, float deltaTime)
 void Realtime::solveCollisions(int iterations, float deltaTime) {
     // for (int iter = 0; iter < iterations; iter++) {
 
-        // for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
-        //     Vertex* v = &m_cloth->m_vertices[i];
+        for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
+            Vertex* v = &m_cloth->m_vertices[i];
 
-        //     if (v->anchored) {
-        //         continue;
-        //     }
+            if (v->anchored) {
+                continue;
+            }
 
-        //     if (m_renderData.shapes.size() == 0) {
-        //         continue;
-        //     }
+            if (m_renderData.shapes.size() == 0) {
+                continue;
+            }
 
-        //     else {
-        //         glm::vec3 newPos = v->pos;
+            else {
+                glm::vec3 newPos = v->pos;
 
-        //         for (const RenderShapeData& shape : m_renderData.shapes) {
+                for (const RenderShapeData& shape : m_renderData.shapes) {
 
-        //             if (shape.primitive.type == PrimitiveType::PRIMITIVE_SPHERE) {
+                    if (shape.primitive.type == PrimitiveType::PRIMITIVE_SPHERE) {
 
-        //                 glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
-        //                 glm::vec3 sphereCenter = glm::vec4(0,0,0,1.0f);
+                        glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
+                        glm::vec3 sphereCenter = glm::vec4(0,0,0,1.0f);
 
-        //                 glm::vec3 centerToNewPos = newPosOS - sphereCenter;
-        //                 float distance = glm::length(centerToNewPos);
-        //                 //float radius = 0.5f * glm::length(glm::vec3(shape.ctm[0]));
-        //                 float radius = 0.5f;
+                        glm::vec3 centerToNewPos = newPosOS - sphereCenter;
+                        float distance = glm::length(centerToNewPos);
+                        //float radius = 0.5f * glm::length(glm::vec3(shape.ctm[0]));
+                        float radius = 0.5f;
 
-        //                 //repulsion correction
-        //                 float epsilon = settings.clothToShapeCollisionCorrection;
+                        //repulsion correction
+                        float epsilon = settings.clothToShapeCollisionCorrection;
 
-        //                 //vertex is inside the sphere
-        //                 if (distance < radius + epsilon) {
+                        //vertex is inside the sphere
+                        if (distance < radius + epsilon) {
 
-        //                     glm::vec3 normalOS = glm::normalize(centerToNewPos);
+                            glm::vec3 normalOS = glm::normalize(centerToNewPos);
 
-        //                     //position correction in Object Space
-        //                     glm::vec3 repelledPosOS = sphereCenter + normalOS * (radius + epsilon);
+                            //position correction in Object Space
+                            glm::vec3 repelledPosOS = sphereCenter + normalOS * (radius + epsilon);
 
-        //                     //position correction in World Space
-        //                     glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
-        //                     newPos = repelledPosWS;
+                            //position correction in World Space
+                            glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
+                            newPos = repelledPosWS;
 
-        //                     glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
+                            glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
 
-        //                     //friction
-        //                     glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
-        //                     normalWS = glm::normalize(normalWS);
-        //                     glm::vec3 frictionalForce = friction(velocity, normalWS);
-        //                     v->forces += frictionalForce;
-        //                 }
+                            //friction
+                            glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
+                            normalWS = glm::normalize(normalWS);
+                            glm::vec3 frictionalForce = friction(velocity, normalWS);
+                            v->forces += frictionalForce;
+                        }
 
-        //                 v->pos = newPos;
-        //             }
+                        v->pos = newPos;
+                    }
 
-        //             if (shape.primitive.type == PrimitiveType::PRIMITIVE_CUBE) { //sticking to the bottom fix that
+                    if (shape.primitive.type == PrimitiveType::PRIMITIVE_CUBE) { //sticking to the bottom fix that
 
-        //                 float margin = 0.1f;
-        //                 glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
+                        float margin = 0.1f;
+                        glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
 
-        //                 //vertex is inside cube
-        //                 if (fabs(newPosOS.x) <= 0.5f + margin && fabs(newPosOS.y) <= 0.5f + margin && fabs(newPosOS.z) <= 0.5f + margin) {
+                        //vertex is inside cube
+                        if (fabs(newPosOS.x) <= 0.5f + margin && fabs(newPosOS.y) <= 0.5f + margin && fabs(newPosOS.z) <= 0.5f + margin) {
 
-        //                     //distance to each face
-        //                     float distance_x = 0.5 - fabs(newPosOS.x);
-        //                     float distance_y = 0.5 - fabs(newPosOS.y);
-        //                     float distance_z = 0.5 - fabs(newPosOS.z);
+                            //distance to each face
+                            float distance_x = 0.5 - fabs(newPosOS.x);
+                            float distance_y = 0.5 - fabs(newPosOS.y);
+                            float distance_z = 0.5 - fabs(newPosOS.z);
 
-        //                     glm::vec3 normalOS(0.f);
-        //                     glm::vec3 repelledPosOS = newPosOS;
+                            glm::vec3 normalOS(0.f);
+                            glm::vec3 repelledPosOS = newPosOS;
 
-        //                     //repulsion correction
-        //                     float epsilon = settings.clothToShapeCollisionCorrection;
+                            //repulsion correction
+                            float epsilon = settings.clothToShapeCollisionCorrection;
 
-        //                     //find closest face
-        //                     //position correction in Object Space
-        //                     if (distance_x <= distance_y && distance_x <= distance_z) {
-        //                         repelledPosOS.x = (newPosOS.x > 0 ? 0.5f + epsilon: -0.5f - epsilon);
-        //                         normalOS = glm::vec3((newPosOS.x > 0 ? 1 : -1), 0, 0);
-        //                     }
-        //                     else if (distance_y <= distance_x && distance_y <= distance_z) {
-        //                         repelledPosOS.y = (newPosOS.y > 0 ? 0.5f + epsilon: -0.5f - epsilon);
-        //                         normalOS = glm::vec3(0, (newPosOS.y > 0 ? 1 : -1), 0);
-        //                     }
-        //                     else if (distance_z <= distance_x && distance_z <= distance_y) {
-        //                         repelledPosOS.z = (newPosOS.z > 0 ? 0.5f + epsilon: -0.5f - epsilon);
-        //                         normalOS = glm::vec3(0, 0, (newPosOS.z > 0 ? 1 : -1));
-        //                     }
+                            //find closest face
+                            //position correction in Object Space
+                            if (distance_x <= distance_y && distance_x <= distance_z) {
+                                repelledPosOS.x = (newPosOS.x > 0 ? 0.5f + epsilon: -0.5f - epsilon);
+                                normalOS = glm::vec3((newPosOS.x > 0 ? 1 : -1), 0, 0);
+                            }
+                            else if (distance_y <= distance_x && distance_y <= distance_z) {
+                                repelledPosOS.y = (newPosOS.y > 0 ? 0.5f + epsilon: -0.5f - epsilon);
+                                normalOS = glm::vec3(0, (newPosOS.y > 0 ? 1 : -1), 0);
+                            }
+                            else if (distance_z <= distance_x && distance_z <= distance_y) {
+                                repelledPosOS.z = (newPosOS.z > 0 ? 0.5f + epsilon: -0.5f - epsilon);
+                                normalOS = glm::vec3(0, 0, (newPosOS.z > 0 ? 1 : -1));
+                            }
 
-        //                     //position correction in World Space
-        //                     glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
-        //                     newPos = repelledPosWS;
+                            //position correction in World Space
+                            glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
+                            newPos = repelledPosWS;
 
-        //                     glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
+                            glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
 
-        //                     //friction
-        //                     glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
-        //                     normalWS = glm::normalize(normalWS);
-        //                     glm::vec3 frictionalForce = friction(velocity, normalWS);
-        //                     v->forces += frictionalForce;
-        //                 }
+                            //friction
+                            glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
+                            normalWS = glm::normalize(normalWS);
+                            glm::vec3 frictionalForce = friction(velocity, normalWS);
+                            v->forces += frictionalForce;
+                        }
 
-        //                 v->pos = newPos;
-        //             }
+                        v->pos = newPos;
+                    }
 
-        //             if (shape.primitive.type == PrimitiveType::PRIMITIVE_CYLINDER) {
+                    if (shape.primitive.type == PrimitiveType::PRIMITIVE_CYLINDER) {
 
-        //                 glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
+                        glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
 
-        //                 float radius = 0.5f;
-        //                 //float radius = 0.5f * glm::length(glm::vec3(shape.ctm[0]));
-        //                 float epsilon = settings.clothToShapeCollisionCorrection;
+                        float radius = 0.5f;
+                        //float radius = 0.5f * glm::length(glm::vec3(shape.ctm[0]));
+                        float epsilon = settings.clothToShapeCollisionCorrection;
 
-        //                 //distance from axis
-        //                 float distance = glm::length(glm::vec2(newPosOS.x, newPosOS.z));
+                        //distance from axis
+                        float distance = glm::length(glm::vec2(newPosOS.x, newPosOS.z));
 
-        //                 glm::vec3 cylinderCenter = glm::vec4(0,0,0,1.0f);
-        //                 glm::vec3 centerToNewPos = newPosOS - cylinderCenter;
+                        glm::vec3 cylinderCenter = glm::vec4(0,0,0,1.0f);
+                        glm::vec3 centerToNewPos = newPosOS - cylinderCenter;
 
-        //                 //vertex is inside cylinder
-        //                 if (distance < radius + epsilon && newPosOS.y > -0.5f - epsilon && newPosOS.y < 0.5f + epsilon) {
+                        //vertex is inside cylinder
+                        if (distance < radius + epsilon && newPosOS.y > -0.5f - epsilon && newPosOS.y < 0.5f + epsilon) {
 
-        //                     glm::vec3 normalOS(0.f);
-        //                     glm::vec3 repelledPosOS = newPosOS;
+                            glm::vec3 normalOS(0.f);
+                            glm::vec3 repelledPosOS = newPosOS;
 
-        //                     // Distances to boundaries
-        //                     float distanceToSide = radius - distance;
-        //                     float distanceToTop  = 0.5f - newPosOS.y;
-        //                     float distanceToBottom  = newPosOS.y + 0.5f;
+                            // Distances to boundaries
+                            float distanceToSide = radius - distance;
+                            float distanceToTop  = 0.5f - newPosOS.y;
+                            float distanceToBottom  = newPosOS.y + 0.5f;
 
-        //                     //find closest boundary
-        //                     if (distanceToSide <= distanceToTop && distanceToSide <= distanceToBottom) {
-        //                         //sides of cylinder
-        //                         glm::vec2 direction = glm::normalize(glm::vec2(newPosOS.x, newPosOS.z));
-        //                         normalOS = glm::vec3(direction.x, 0.f, direction.y);
-        //                         repelledPosOS.x = direction.x * (radius + epsilon);
-        //                         repelledPosOS.z = direction.y * (radius + epsilon);
+                            //find closest boundary
+                            if (distanceToSide <= distanceToTop && distanceToSide <= distanceToBottom) {
+                                //sides of cylinder
+                                glm::vec2 direction = glm::normalize(glm::vec2(newPosOS.x, newPosOS.z));
+                                normalOS = glm::vec3(direction.x, 0.f, direction.y);
+                                repelledPosOS.x = direction.x * (radius + epsilon);
+                                repelledPosOS.z = direction.y * (radius + epsilon);
 
-        //                         //repelledPosOS.x = direction.x + normalOS.x * (radius + epsilon);
-        //                         //repelledPosOS.z = direction.y + normalOS.z * (radius + epsilon);
-        //                     }
-        //                     else if (distanceToTop <= distanceToBottom) {
-        //                         //top cap
-        //                         normalOS = glm::vec3(0, 1, 0);
-        //                         //normalOS = glm::normalize(centerToNewPos);
+                                //repelledPosOS.x = direction.x + normalOS.x * (radius + epsilon);
+                                //repelledPosOS.z = direction.y + normalOS.z * (radius + epsilon);
+                            }
+                            else if (distanceToTop <= distanceToBottom) {
+                                //top cap
+                                normalOS = glm::vec3(0, 1, 0);
+                                //normalOS = glm::normalize(centerToNewPos);
 
-        //                         //repelledPosOS.y = distanceToTop + epsilon;
+                                //repelledPosOS.y = distanceToTop + epsilon;
 
-        //                         repelledPosOS.y = 0.5f + epsilon;
+                                repelledPosOS.y = 0.5f + epsilon;
 
-        //                     }
-        //                     else {
-        //                         //bottom cap
-        //                         normalOS = glm::vec3(0, -1, 0);
-        //                         //normalOS = glm::normalize(centerToNewPos);
+                            }
+                            else {
+                                //bottom cap
+                                normalOS = glm::vec3(0, -1, 0);
+                                //normalOS = glm::normalize(centerToNewPos);
 
-        //                         //repelledPosOS.y = distanceToBottom - epsilon;
+                                //repelledPosOS.y = distanceToBottom - epsilon;
 
-        //                         repelledPosOS.y = -0.5f - epsilon;
-        //                         //repelledPosOS.y = cylinderCenter.y + normalOS.y * (-0.5f - epsilon);
-        //                     }
+                                repelledPosOS.y = -0.5f - epsilon;
+                                //repelledPosOS.y = cylinderCenter.y + normalOS.y * (-0.5f - epsilon);
+                            }
 
-        //                     //position correction in World Space
-        //                     glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
-        //                     newPos = repelledPosWS;
+                            //position correction in World Space
+                            glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
+                            newPos = repelledPosWS;
 
-        //                     glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
+                            glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
 
-        //                     //friction
-        //                     glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
-        //                     normalWS = glm::normalize(normalWS);
-        //                     glm::vec3 frictionalForce = friction(velocity, normalWS);
-        //                     v->forces += frictionalForce;
-        //                 }
+                            //friction
+                            glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
+                            normalWS = glm::normalize(normalWS);
+                            glm::vec3 frictionalForce = friction(velocity, normalWS);
+                            v->forces += frictionalForce;
+                        }
 
-        //                 v->pos = newPos;
+                        v->pos = newPos;
 
-        //             }
+                    }
 
 
-        //         }
-        //     }
-        // }
+                }
+            }
+        }
     //}
 }
 

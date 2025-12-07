@@ -578,10 +578,10 @@ void MainWindow::initialize() {
 
     onValChangeClothWidthBox(2.f);
     // onValChangeClothWidthStepBox(.3f);
-    onValChangeClothWidthStepBox(.1f);
+    onValChangeClothWidthStepBox(.2f);
     onValChangeClothLengthBox(2.f);
     // onValChangeClothLengthStepBox(.3f);
-    onValChangeClothLengthStepBox(.1f);
+    onValChangeClothLengthStepBox(.2f);
     // onValChangeClothWidthBox(2.43f);
     // onValChangeClothWidthStepBox(.2f);
     // onValChangeClothLengthBox(3.79f);
