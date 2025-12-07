@@ -27,13 +27,8 @@ include_directories(src)
 add_executable(${PROJECT_NAME}
     src/main.cpp
 
-    src/Animation.cpp
-    src/Animator.cpp
-    src/Bone.cpp
     src/realtime.cpp
     src/mainwindow.cpp
-    src/Mesh.cpp
-    src/Model.cpp
     src/settings.cpp
     src/utils/scenefilereader.cpp
     src/utils/sceneparser.cpp
@@ -43,12 +38,7 @@ add_executable(${PROJECT_NAME}
     src/shapes/Cone.cpp
     src/camera/Camera.cpp
 
-    src/Animation.h
-    src/Animator.h
-    src/Bone.h
     src/mainwindow.h
-    src/Mesh.h
-    src/Model.h
     src/realtime.h
     src/settings.h
     src/utils/scenedata.h
@@ -61,7 +51,6 @@ add_executable(${PROJECT_NAME}
     src/shapes/Cylinder.h
     src/shapes/Cone.h
     src/camera/Camera.h
-    src/utils/assimp_glm_helpers.h
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`
@@ -91,8 +80,6 @@ qt6_add_resources(${PROJECT_NAME} "Resources"
     FILES
         resources/shaders/default.frag
         resources/shaders/default.vert
-        resources/shaders/default2.frag
-        resources/shaders/default2.vert
 )
 
 # GLEW: this provides support for Windows (including 64-bit)
@@ -112,10 +99,6 @@ endif()
 if (APPLE)
   set(CMAKE_CXX_FLAGS "-Wno-deprecated-volatile")
 endif()
-
-set(CMAKE_PREFIX_PATH "C:/libs/assimp")
-find_package(assimp REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE assimp::assimp)
 
 set(EIGEN3_INCLUDE_DIR "C:/libs/eigen-5.0.1")
 target_include_directories(${PROJECT_NAME} PRIVATE ${EIGEN3_INCLUDE_DIR})

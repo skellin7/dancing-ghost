@@ -7,8 +7,8 @@
 #include "settings.h"
 #include "utils/shaderloader.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
-#define IK true
 #define PARAM 20
 
 // ================== Rendering the Scene!
@@ -37,13 +37,15 @@ void Realtime::finish() {
     // Students: anything requiring OpenGL calls when the program exits should be done here
     glDeleteProgram(m_shader);
 
-    if (IK) {
+    glDeleteVertexArrays(1, &m_lineVAO);
+    glDeleteVertexArrays(1, &m_circleVAO);
 
-    }
-    else {
-        delete m_model;
-        delete m_animation;
-        delete m_animator;
+    glDeleteBuffers(1, &m_lineVBO);
+    glDeleteBuffers(1, &m_circleVBO);
+
+    delete m_camera;
+    for (Joint* j : m_chain) {
+        delete j;
     }
 
     this->doneCurrent();
@@ -72,75 +74,66 @@ void Realtime::initializeGL() {
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
     // Students: anything requiring OpenGL calls when the program starts should be done here
-    if (IK) {
-        m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default2.vert", ":/resources/shaders/default2.frag");
+    m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
 
-        float aspect = (float)size().width() / size().height();
-        m_VP = glm::ortho(-3.f*aspect, 3.f*aspect, -3.f, 3.f, -10.f, 10.f);
+    float aspect = (float)size().width() / size().height();
+    m_VP = glm::ortho(-3.f*aspect, 3.f*aspect, -3.f, 3.f, -10.f, 10.f);
 
-        glGenVertexArrays(1, &m_lineVAO);
-        glGenBuffers(1, &m_lineVBO);
+    glGenVertexArrays(1, &m_lineVAO);
+    glGenBuffers(1, &m_lineVBO);
 
-        glBindVertexArray(m_lineVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, m_lineVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6, nullptr, GL_DYNAMIC_DRAW);
+    glBindVertexArray(m_lineVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_lineVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6, nullptr, GL_DYNAMIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glGenVertexArrays(1, &m_circleVAO);
-        glGenBuffers(1, &m_circleVBO);
+    glGenVertexArrays(1, &m_circleVAO);
+    glGenBuffers(1, &m_circleVBO);
 
-        glBindVertexArray(m_circleVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, m_circleVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (3 * PARAM), nullptr, GL_DYNAMIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glEnableVertexAttribArray(0);
+    glBindVertexArray(m_circleVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_circleVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (3 * PARAM), nullptr, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
 
-        glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-        glLineWidth(10.0f);
+    glLineWidth(10.0f);
 
-        Joint *shoulder = new Joint{};
-        shoulder->name = "Shoulder";
-        shoulder->parent = nullptr;
-        shoulder->localPosition = glm::vec3(0, 0, 0);
-        shoulder->localRotation = glm::quat(1, 0, 0, 0);
-        shoulder->dofX = false;
-        shoulder->dofY = false;
-        shoulder->dofZ = true;
+    Joint *shoulder = new Joint{};
+    shoulder->name = "Shoulder";
+    shoulder->parent = nullptr;
+    shoulder->localPosition = glm::vec3(0, 0, 0);
+    shoulder->localRotation = glm::quat(1, 0, 0, 0);
+    shoulder->dofX = false;
+    shoulder->dofY = false;
+    shoulder->dofZ = true;
 
-        Joint *elbow = new Joint{};
-        elbow->name = "Elbow";
-        elbow->parent = shoulder;
-        elbow->localPosition = glm::vec3(0.5f, 0.0f, 0.0f);
-        elbow->localRotation = glm::quat(1, 0, 0, 0);
-        elbow->dofX = false;
-        elbow->dofY = false;
-        elbow->dofZ = true;
+    Joint *elbow = new Joint{};
+    elbow->name = "Elbow";
+    elbow->parent = shoulder;
+    elbow->localPosition = glm::vec3(0.5f, 0.0f, 0.0f);
+    elbow->localRotation = glm::quat(1, 0, 0, 0);
+    elbow->dofX = false;
+    elbow->dofY = false;
+    elbow->dofZ = true;
 
-        Joint *wrist = new Joint{};
-        wrist->name = "Wrist";
-        wrist->parent = elbow;
-        wrist->localPosition = glm::vec3(0.5f, 0.0f, 0.0f);
-        wrist->localRotation = glm::quat(1, 0, 0, 0);
-        wrist->dofX = false;
-        wrist->dofY = false;
-        wrist->dofZ = true;
+    Joint *wrist = new Joint{};
+    wrist->name = "Wrist";
+    wrist->parent = elbow;
+    wrist->localPosition = glm::vec3(0.5f, 0.0f, 0.0f);
+    wrist->localRotation = glm::quat(1, 0, 0, 0);
+    wrist->dofX = false;
+    wrist->dofY = false;
+    wrist->dofZ = true;
 
-        m_chain = {shoulder, elbow, wrist};
-    }
-    else {
-        m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
-
-        m_model = new Model("resources/objects/vampire/dancing_vampire.dae");
-        m_animation = new Animation("resources/objects/vampire/dancing_vampire.dae", m_model);
-        m_animator = new Animator(m_animation);
-    }
+    m_chain = {shoulder, elbow, wrist};
 
     m_camera = new Camera();
 
@@ -321,61 +314,39 @@ void Realtime::paintGL() {
     // Students: anything requiring OpenGL calls every frame should be done here
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    if (IK) {
-        if (m_mouseDown) {
-            solveIK_Jacobian(m_chain, m_ikTarget);
-        }
-
-        computeFK(m_chain[0]);
-        computeFK(m_chain[1]);
-        computeFK(m_chain[2]);
-
-        glm::vec3 color = glm::vec3(1.f, 1.f, 1.f);
-
-        glm::vec3 p0 = m_chain[0]->worldTransform[3];
-        glm::vec3 p1 = m_chain[1]->worldTransform[3];
-        glm::vec3 p2 = m_chain[2]->worldTransform[3];
-
-        drawLine(p0, p1, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-        drawLine(p1, p2, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-
-        glm::vec3 p_hip = glm::vec3(0.f, -0.75f, 0.f);
-        glm::vec3 p_neck = glm::vec3(0.f, 0.25f, 0.f);
-
-        drawLine(p_neck, p_hip, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-
-        glm::vec3 p_lelbow = glm::vec3(-0.5f, 0.f, 0.f);
-        drawLine(p0, p_lelbow, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-        glm::vec3 p_lwrist = glm::vec3(-0.5f, 0.5f, 0.f);
-        drawLine(p_lelbow, p_lwrist, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-        glm::vec3 p_rfoot = glm::vec3(0.5f, -1.5f, 0.f);
-        drawLine(p_hip, p_rfoot, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-        glm::vec3 p_lfoot = glm::vec3(-0.5f, -1.5f, 0.f);
-        drawLine(p_hip, p_lfoot, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-
-        glm::vec3 p_head = glm::vec3(0.f, 0.65f, 0.f);
-        drawCircle(p_head, 0.4f, PARAM, color, m_VP, m_shader, m_circleVAO, m_circleVBO);
+    if (m_mouseDown) {
+        solveIK_Jacobian(m_chain, m_ikTarget);
     }
-    else {
-        glUseProgram(m_shader);
 
-        glUniformMatrix4fv(glGetUniformLocation(m_shader, "viewMat"), 1, GL_FALSE, &m_camera->getViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(m_shader, "projMat"), 1, GL_FALSE, &m_camera->getProjMatrix()[0][0]);
+    computeFK(m_chain[0]);
+    computeFK(m_chain[1]);
+    computeFK(m_chain[2]);
 
-        std::vector<glm::mat4> transforms = m_animator->getFinalBoneMatrices();
-        for (int i = 0; i < transforms.size(); ++i)
-            glUniformMatrix4fv(glGetUniformLocation(m_shader, ("finalBonesMatrices[" + std::to_string(i) + "]").c_str()),
-                               1, GL_FALSE, glm::value_ptr(transforms[i]));
+    glm::vec3 color = glm::vec3(1.f, 1.f, 1.f);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.f, -1.f, 1.f));
-        glUniformMatrix4fv(glGetUniformLocation(m_shader, "modelMat"), 1, GL_FALSE, &model[0][0]);
+    glm::vec3 p0 = m_chain[0]->worldTransform[3];
+    glm::vec3 p1 = m_chain[1]->worldTransform[3];
+    glm::vec3 p2 = m_chain[2]->worldTransform[3];
 
-        m_model->draw(m_shader);
+    drawLine(p0, p1, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
+    drawLine(p1, p2, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
 
-        glUseProgram(0);
-    }
+    glm::vec3 p_hip = glm::vec3(0.f, -0.75f, 0.f);
+    glm::vec3 p_neck = glm::vec3(0.f, 0.25f, 0.f);
+
+    drawLine(p_neck, p_hip, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
+
+    glm::vec3 p_lelbow = glm::vec3(-0.5f, 0.f, 0.f);
+    drawLine(p0, p_lelbow, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
+    glm::vec3 p_lwrist = glm::vec3(-0.5f, 0.5f, 0.f);
+    drawLine(p_lelbow, p_lwrist, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
+    glm::vec3 p_rfoot = glm::vec3(0.5f, -1.5f, 0.f);
+    drawLine(p_hip, p_rfoot, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
+    glm::vec3 p_lfoot = glm::vec3(-0.5f, -1.5f, 0.f);
+    drawLine(p_hip, p_lfoot, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
+
+    glm::vec3 p_head = glm::vec3(0.f, 0.65f, 0.f);
+    drawCircle(p_head, 0.4f, PARAM, color, m_VP, m_shader, m_circleVAO, m_circleVBO);
 }
 
 void Realtime::resizeGL(int w, int h) {
@@ -425,44 +396,31 @@ void Realtime::mouseReleaseEvent(QMouseEvent *event) {
 
 void Realtime::mouseMoveEvent(QMouseEvent *event) {
     if (m_mouseDown) {
-        if (IK) {
-            float mx = event->position().x();
-            float my = event->position().y();
+        float mx = event->position().x();
+        float my = event->position().y();
 
-            // Convert mouse position → normalized device coords
-            float x = (2.0f * mx) / width() - 1.0f;
-            float y = 1.0f - (2.0f * my) / height();
+        // Convert mouse position → normalized device coords
+        float x = (2.0f * mx) / width() - 1.0f;
+        float y = 1.0f - (2.0f * my) / height();
 
-            glm::vec4 rayStartNDC(x, y, -1.0f, 1.0f);
-            glm::vec4 rayEndNDC  (x, y,  1.0f, 1.0f);
+        glm::vec4 rayStartNDC(x, y, -1.0f, 1.0f);
+        glm::vec4 rayEndNDC  (x, y,  1.0f, 1.0f);
 
-            glm::mat4 invVP = glm::inverse(m_VP);
+        glm::mat4 invVP = glm::inverse(m_VP);
 
-            glm::vec4 rayStartWorld = invVP * rayStartNDC;
-            rayStartWorld /= rayStartWorld.w;
+        glm::vec4 rayStartWorld = invVP * rayStartNDC;
+        rayStartWorld /= rayStartWorld.w;
 
-            glm::vec4 rayEndWorld = invVP * rayEndNDC;
-            rayEndWorld /= rayEndWorld.w;
+        glm::vec4 rayEndWorld = invVP * rayEndNDC;
+        rayEndWorld /= rayEndWorld.w;
 
-            glm::vec3 r0 = glm::vec3(rayStartWorld);
-            glm::vec3 r1 = glm::vec3(rayEndWorld);
-            glm::vec3 dir = glm::normalize(r1 - r0);
+        glm::vec3 r0 = glm::vec3(rayStartWorld);
+        glm::vec3 r1 = glm::vec3(rayEndWorld);
+        glm::vec3 dir = glm::normalize(r1 - r0);
 
-            // Intersect ray with plane z = ikPlaneZ
-            float t = (m_ikPlaneZ - r0.z) / dir.z;
-            m_ikTarget = r0 + t * dir;
-        }
-        else {
-            int posX = event->position().x();
-            int posY = event->position().y();
-            int deltaX = posX - m_prev_mouse_pos.x;
-            int deltaY = posY - m_prev_mouse_pos.y;
-            m_prev_mouse_pos = glm::vec2(posX, posY);
-
-            // Use deltaX and deltaY here to rotate
-            m_camera->rotateX(0.005 * deltaX);
-            m_camera->rotateY(0.005 * deltaY);
-        }
+        // Intersect ray with plane z = ikPlaneZ
+        float t = (m_ikPlaneZ - r0.z) / dir.z;
+        m_ikTarget = r0 + t * dir;
 
         update(); // asks for a PaintGL() call to occur
     }
@@ -491,10 +449,6 @@ void Realtime::timerEvent(QTimerEvent *event) {
     }
     if (m_keyMap[Qt::Key_Control]) {
         m_camera->moveUpDir(-5.f * deltaTime);
-    }
-
-    if (!IK) {
-        m_animator->updateAnimation(deltaTime);
     }
 
     update(); // asks for a PaintGL() call to occur

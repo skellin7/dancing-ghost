@@ -21,9 +21,6 @@
 #include "shapes/Cylinder.h"
 #include "shapes/Sphere.h"
 #include "camera/camera.h"
-#include "Model.h"
-#include "Animation.h"
-#include "Animator.h"
 #include <Eigen/Dense>
 
 struct Joint {
@@ -83,10 +80,6 @@ private:
     RenderData m_renderData;
 
     Camera* m_camera;
-
-    Model* m_model;
-    Animation* m_animation;
-    Animator* m_animator;
 
     GLuint m_lineVAO, m_lineVBO;
     GLuint m_circleVAO, m_circleVBO;
