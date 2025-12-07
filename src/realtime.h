@@ -90,6 +90,9 @@ private:
 
     RenderData m_renderData;
 
+    Sphere* m_sphere;
+    GLuint m_sphere_vbo, m_sphere_vao;
+
     Camera* m_camera;
 
     GLuint m_lineVAO, m_lineVBO;
