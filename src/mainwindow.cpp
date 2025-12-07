@@ -42,6 +42,12 @@ void MainWindow::initialize() {
     QLabel *camera_label = new QLabel(); // Camera label
     camera_label->setText("Camera");
     camera_label->setFont(font);
+    QLabel *anim_label = new QLabel(); // Animation label
+    anim_label->setText("Animation");
+    anim_label->setFont(font);
+    QLabel *cloth_label = new QLabel(); // Cloth label
+    cloth_label->setText("Cloth");
+    cloth_label->setFont(font);
 
     QLabel *param1_label = new QLabel(); // Parameter 1 label
     param1_label->setText("Parameter 1:");
@@ -51,6 +57,19 @@ void MainWindow::initialize() {
     near_label->setText("Near Plane:");
     QLabel *far_label = new QLabel(); // Far plane label
     far_label->setText("Far Plane:");
+
+    rwristCB = new QRadioButton();
+    rwristCB->setText(QStringLiteral("Right Wrist"));
+    rwristCB->setChecked(true);
+
+    lwristCB = new QRadioButton();
+    lwristCB->setText(QStringLiteral("Left Wrist"));
+
+    rankleCB = new QRadioButton();
+    rankleCB->setText(QStringLiteral("Right Ankle"));
+
+    lankleCB = new QRadioButton();
+    lankleCB->setText(QStringLiteral("Left Ankle"));
 
     QLabel *x_label = new QLabel(); // cloth bottom left x pos label
     x_label->setText("x pos:");
@@ -501,17 +520,24 @@ void MainWindow::initialize() {
 
     vLayout->addWidget(uploadFile);
     vLayout->addWidget(saveImage);
-    vLayout->addWidget(tesselation_label);
-    vLayout->addWidget(param1_label);
-    vLayout->addWidget(p1Layout);
-    vLayout->addWidget(param2_label);
-    vLayout->addWidget(p2Layout);
+    // vLayout->addWidget(tesselation_label);
+    // vLayout->addWidget(param1_label);
+    // vLayout->addWidget(p1Layout);
+    // vLayout->addWidget(param2_label);
+    // vLayout->addWidget(p2Layout);
     vLayout->addWidget(camera_label);
     vLayout->addWidget(near_label);
     vLayout->addWidget(nearLayout);
     vLayout->addWidget(far_label);
     vLayout->addWidget(farLayout);
 
+    vLayout->addWidget(anim_label);
+    vLayout->addWidget(rwristCB);
+    vLayout->addWidget(lwristCB);
+    vLayout->addWidget(rankleCB);
+    vLayout->addWidget(lankleCB);
+
+    vLayout->addWidget(cloth_label);
     vLayout->addWidget(x_label);
     vLayout->addWidget(xLayout);
     vLayout->addWidget(y_label);
@@ -608,6 +634,10 @@ void MainWindow::connectUIElements() {
     connectParam2();
     connectNear();
     connectFar();
+    connectRWrist();
+    connectLWrist();
+    connectRAnkle();
+    connectLAnkle();
     connectx();
     connecty();
     connectz();
@@ -824,6 +854,50 @@ void MainWindow::onValChangeFarSlider(int newValue) {
     //farSlider->setValue(newValue);
     farBox->setValue(newValue/100.f);
     settings.farPlane = farBox->value();
+    realtime->settingsChanged();
+}
+
+void MainWindow::connectRWrist()
+{
+    connect(rwristCB, &QRadioButton::clicked, this, &MainWindow::onRWristChange);
+}
+
+void MainWindow::onRWristChange()
+{
+    settings.endjoint = EndJoint::RWRIST;
+    realtime->settingsChanged();
+}
+
+void MainWindow::connectLWrist()
+{
+    connect(lwristCB, &QRadioButton::clicked, this, &MainWindow::onLWristChange);
+}
+
+void MainWindow::onLWristChange()
+{
+    settings.endjoint = EndJoint::LWRIST;
+    realtime->settingsChanged();
+}
+
+void MainWindow::connectRAnkle()
+{
+    connect(rankleCB, &QRadioButton::clicked, this, &MainWindow::onRAnkleChange);
+}
+
+void MainWindow::onRAnkleChange()
+{
+    settings.endjoint = EndJoint::RANKLE;
+    realtime->settingsChanged();
+}
+
+void MainWindow::connectLAnkle()
+{
+    connect(lankleCB, &QRadioButton::clicked, this, &MainWindow::onLAnkleChange);
+}
+
+void MainWindow::onLAnkleChange()
+{
+    settings.endjoint = EndJoint::LANKLE;
     realtime->settingsChanged();
 }
 

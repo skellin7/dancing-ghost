@@ -6,8 +6,6 @@
 #include <iostream>
 #include "settings.h"
 #include "utils/shaderloader.h"
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/quaternion.hpp>
 #include "src/cloth.h"
 
 #define PARAM 20
@@ -56,7 +54,7 @@ void Realtime::finish() {
     glDeleteVertexArrays(1, &m_spring_vao);
 
     delete m_camera;
-    for (Joint* j : m_chain) {
+    for (Joint* j : m_joints) {
         delete j;
     }
 
@@ -119,46 +117,21 @@ void Realtime::initializeGL() {
 
     glLineWidth(10.0f);
 
-    Joint *shoulder = new Joint{};
-    shoulder->name = "Shoulder";
-    shoulder->parent = nullptr;
-    shoulder->localPosition = glm::vec3(0, 0, 0);
-    shoulder->localRotation = glm::quat(1, 0, 0, 0);
-    shoulder->dofX = false;
-    shoulder->dofY = false;
-    shoulder->dofZ = true;
-
-    Joint *elbow = new Joint{};
-    elbow->name = "Elbow";
-    elbow->parent = shoulder;
-    elbow->localPosition = glm::vec3(0.5f, 0.0f, 0.0f);
-    elbow->localRotation = glm::quat(1, 0, 0, 0);
-    elbow->dofX = false;
-    elbow->dofY = false;
-    elbow->dofZ = true;
-
-    Joint *wrist = new Joint{};
-    wrist->name = "Wrist";
-    wrist->parent = elbow;
-    wrist->localPosition = glm::vec3(0.5f, 0.0f, 0.0f);
-    wrist->localRotation = glm::quat(1, 0, 0, 0);
-    wrist->dofX = false;
-    wrist->dofY = false;
-    wrist->dofZ = true;
-
-    m_chain = {shoulder, elbow, wrist};
+    m_joints = Joint::setupSkeleton();
 
     m_camera = new Camera();
 
-    // SceneCameraData data = {glm::vec4(6.f, 3.f, 6.f, 1.f),
-    //                         glm::vec4(0.f, 1.f, 0.f, 0.f),
-    //                         glm::vec4(-6.f, -3.f, -6.f, 0.f),
-    //                         0.5f,
-    //                         0.f,
-    //                         0.f};
-    // m_camera->setCameraData(data);
-    // m_camera->setWidthHeight(size().width(), size().height());
-    // m_camera->setNearFar(settings.nearPlane, settings.farPlane);
+    SceneCameraData data = {
+        .pos = glm::vec4(0.f, 0.f, 10.f, 1.f),
+        .look = glm::vec4(0.f, 0.f, -10.f, 0.f),
+        .up = glm::vec4(0.f, 1.f, 0.f, 0.f),
+        .heightAngle = 0.5f,
+        .aperture = 0.f,
+        .focalLength = 0.f
+    };
+    m_camera->setCameraData(data);
+    m_camera->setWidthHeight(size().width(), size().height());
+    m_camera->setNearFar(settings.nearPlane, settings.farPlane);
 
     m_sphere = new Sphere();
 
@@ -175,167 +148,8 @@ void Realtime::initializeGL() {
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    sceneChanged();
+    // sceneChanged();
     settingsChanged();
-}
-
-void computeFK(Joint* joint) {
-    joint->localTransform =
-        glm::translate(glm::mat4(1.0f), joint->localPosition) *
-        glm::toMat4(joint->localRotation);
-
-    if (joint->parent == nullptr) {
-        joint->worldTransform = joint->localTransform;
-        joint->worldRotation = joint->localRotation;
-    }
-    else {
-        joint->worldRotation = joint->parent->worldRotation * joint->localRotation;
-        joint->worldTransform = joint->parent->worldTransform * joint->localTransform;
-    }
-}
-
-inline Eigen::Vector3f glmToEigen(const glm::vec3 &v)
-{
-    return Eigen::Vector3f(v.x, v.y, v.z);
-}
-
-void solveIK_Jacobian(std::vector<Joint*> chain, glm::vec3 ikTarget)
-{
-    const int ITER = 10;
-    const float step = 5e-3f;
-
-    int DOFCOUNT = 0;
-    for (Joint* j : chain)
-        DOFCOUNT += (j->dofX ? 1 : 0) + (j->dofY ? 1 : 0) + (j->dofZ ? 1 : 0);
-
-    for (int it = 0; it < ITER; it++) {
-        float chainLen = 0.f;
-        for (Joint* j : chain) {
-            computeFK(j);
-            chainLen += glm::length(j->localPosition);
-        }
-
-        if (glm::length(ikTarget) > chainLen) {
-            ikTarget = chainLen * glm::normalize(ikTarget);
-        }
-
-        glm::vec3 p = chain.back()->worldTransform[3];
-        glm::vec3 e = ikTarget - p;
-        if (glm::length(e) < step)
-            return;
-
-        Eigen::MatrixXf J(3, DOFCOUNT);
-        int col = 0;
-
-        glm::vec3 pEff = chain.back()->worldTransform[3];
-
-        for (Joint* j : chain)
-        {
-            glm::vec3 jointPos = j->worldTransform[3];
-            glm::vec3 toEnd = pEff - jointPos;
-
-            glm::quat R = j->worldRotation;
-
-            if (j->dofX) {
-                glm::vec3 ax = R * glm::vec3(1,0,0);
-                glm::vec3 dpx = glm::cross(ax, toEnd);
-                J.col(col++) = glmToEigen(dpx);
-            }
-
-            if (j->dofY) {
-                glm::vec3 ay = R * glm::vec3(0,1,0);
-                glm::vec3 dpy = glm::cross(ay, toEnd);
-                J.col(col++) = glmToEigen(dpy);
-            }
-
-            if (j->dofZ) {
-                glm::vec3 az = R * glm::vec3(0,0,1);
-                glm::vec3 dpz = glm::cross(az, toEnd);
-                J.col(col++) = glmToEigen(dpz);
-            }
-        }
-
-        Eigen::VectorXf dTheta =
-            (J.transpose() * J + 0.01f * Eigen::MatrixXf::Identity(DOFCOUNT, DOFCOUNT))
-            .ldlt()
-            .solve(J.transpose() * glmToEigen(e));
-
-        int k = 0;
-        for (Joint* j : chain)
-        {
-            glm::quat dq = glm::quat(1.0f, 0, 0, 0);
-            float delta = dTheta(k++) * step;
-
-            if (j->dofX) {
-                glm::quat qx = glm::angleAxis(delta, glm::vec3(1.0f, 0.0f, 0.0f));
-                dq = qx * dq;
-            }
-            if (j->dofY) {
-                glm::quat qy = glm::angleAxis(delta, glm::vec3(0.0f, 1.0f, 0.0f));
-                dq = qy * dq;
-            }
-
-            if (j->dofZ) {
-                glm::quat qz = glm::angleAxis(delta, glm::vec3(0.0f, 0.0f, 1.0f));
-                dq = qz * dq;
-            }
-
-            j->localRotation = glm::normalize(dq * j->localRotation);
-        }
-    }
-}
-
-void drawLine(glm::vec3 a, glm::vec3 b, glm::vec3 color, glm::mat4 VP,
-              GLuint shader, GLuint lineVAO, GLuint lineVBO) {
-    float vertices[6] = {
-        a.x, a.y, a.z,
-        b.x, b.y, b.z
-    };
-
-    glUseProgram(shader);
-
-    glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, &color[0]);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uVP"), 1, GL_FALSE, &VP[0][0]);
-
-    glBindVertexArray(lineVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
-    glDrawArrays(GL_LINES, 0, 2);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glUseProgram(0);
-}
-
-// draws circle in x-y plane
-void drawCircle(glm::vec3 c, float r, int param, glm::vec3 color,
-                glm::mat4 VP, GLuint shader, GLuint vao, GLuint vbo)
-{
-    std::vector<float> vertices(3 * param);
-
-    for(int i = 0; i < param; i++) {
-        float theta = i * 2.0f * M_PI / param;
-        vertices[3*i + 0] = c.x + r * cos(theta);
-        vertices[3*i + 1] = c.y + r * sin(theta);
-        vertices[3*i + 2] = c.z;
-    }
-
-    glUseProgram(shader);
-    glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, &color[0]);
-    glUniformMatrix4fv(glGetUniformLocation(shader, "uVP"), 1, GL_FALSE, &VP[0][0]);
-
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
-
-    glDrawArrays(GL_LINE_LOOP, 0, param);
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glUseProgram(0);
 }
 
 void Realtime::paintGL() {
@@ -343,59 +157,52 @@ void Realtime::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (m_mouseDown) {
-        solveIK_Jacobian(m_chain, m_ikTarget);
+        if (settings.endjoint == EndJoint::RWRIST) {
+            Joint::solveIK(m_joints[3], m_ikTarget);
+        }
+        else if (settings.endjoint == EndJoint::LWRIST) {
+            Joint::solveIK(m_joints[6], m_ikTarget);
+        }
+        else if (settings.endjoint == EndJoint::RANKLE) {
+            Joint::solveIK(m_joints[10], glm::vec3(m_joints[8]->getWorldPosition()) + m_ikTarget);
+        }
+        else if (settings.endjoint == EndJoint::LANKLE) {
+            Joint::solveIK(m_joints[13], glm::vec3(m_joints[11]->getWorldPosition()) + m_ikTarget);
+        }
     }
 
-    computeFK(m_chain[0]);
-    computeFK(m_chain[1]);
-    computeFK(m_chain[2]);
-
     glm::vec3 color = glm::vec3(1.f, 1.f, 1.f);
-
-    glm::vec3 p0 = m_chain[0]->worldTransform[3];
-    glm::vec3 p1 = m_chain[1]->worldTransform[3];
-    glm::vec3 p2 = m_chain[2]->worldTransform[3];
-
     m_VP = m_camera->getProjMatrix() * m_camera->getViewMatrix();
 
-    drawLine(p0, p1, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-    drawLine(p1, p2, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-
-    glm::vec3 p_hip = glm::vec3(0.f, -0.75f, 0.f);
-    glm::vec3 p_neck = glm::vec3(0.f, 0.25f, 0.f);
-
-    drawLine(p_neck, p_hip, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-
-    glm::vec3 p_lelbow = glm::vec3(-0.5f, 0.f, 0.f);
-    drawLine(p0, p_lelbow, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-    glm::vec3 p_lwrist = glm::vec3(-0.5f, 0.5f, 0.f);
-    drawLine(p_lelbow, p_lwrist, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-    glm::vec3 p_rfoot = glm::vec3(0.5f, -1.5f, 0.f);
-    drawLine(p_hip, p_rfoot, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-    glm::vec3 p_lfoot = glm::vec3(-0.5f, -1.5f, 0.f);
-    drawLine(p_hip, p_lfoot, color, m_VP, m_shader, m_lineVAO, m_lineVBO);
-
-    glm::vec3 p_head = glm::vec3(0.f, 0.65f, 0.f);
-    drawCircle(p_head, 0.4f, PARAM, color, m_VP, m_shader, m_circleVAO, m_circleVBO);
-
+    for (Joint* j : m_joints) {
+        if (j->getBoneType() == BoneType::CYLINDER) {
+            Joint::drawLine(j->getParent()->getWorldPosition(), j->getWorldPosition(),
+                     color, m_VP, m_shader, m_lineVAO, m_lineVBO);
+        }
+        else if (j->getBoneType() == BoneType::SPHERE) {
+            float r = glm::length(j->getWorldPosition()-j->getParent()->getWorldPosition());
+            Joint::drawCircle(j->getWorldPosition(), r, PARAM,
+                       color, m_VP, m_shader, m_circleVAO, m_circleVBO);
+        }
+    }
 
     //Cloth stuff
     glUseProgram(m_cloth_shader);
 
-    for (RenderShapeData shape : m_renderData.shapes) {
-        int dataLen;
-        switch (shape.primitive.type) {
-        case PrimitiveType::PRIMITIVE_SPHERE:
-            glBindVertexArray(m_sphere_vao);
-            dataLen = m_sphere->dataLen();
-            break;
-        }
+    // for (RenderShapeData shape : m_renderData.shapes) {
+    //     int dataLen;
+    //     switch (shape.primitive.type) {
+    //     case PrimitiveType::PRIMITIVE_SPHERE:
+    //         glBindVertexArray(m_sphere_vao);
+    //         dataLen = m_sphere->dataLen();
+    //         break;
+    //     }
 
-        glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "modelMatrix"), 1, GL_FALSE, &shape.ctm[0][0]);
+    //     glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "modelMatrix"), 1, GL_FALSE, &shape.ctm[0][0]);
 
-        glDrawArrays(GL_TRIANGLES, 0, dataLen / 6);
-        glBindVertexArray(0);
-    }
+    //     glDrawArrays(GL_TRIANGLES, 0, dataLen / 6);
+    //     glBindVertexArray(0);
+    // }
 
     glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "viewMatrix"), 1, GL_FALSE, &m_camera->getViewMatrix()[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "projMatrix"), 1, GL_FALSE, &m_camera->getProjMatrix()[0][0]);
@@ -621,15 +428,15 @@ void Realtime::mouseReleaseEvent(QMouseEvent *event) {
 
 void Realtime::mouseMoveEvent(QMouseEvent *event) {
     if (m_mouseDown) {
-        int posX = event->position().x();
-        int posY = event->position().y();
-        int deltaX = posX - m_prev_mouse_pos.x;
-        int deltaY = posY - m_prev_mouse_pos.y;
-        m_prev_mouse_pos = glm::vec2(posX, posY);
+        // int posX = event->position().x();
+        // int posY = event->position().y();
+        // int deltaX = posX - m_prev_mouse_pos.x;
+        // int deltaY = posY - m_prev_mouse_pos.y;
+        // m_prev_mouse_pos = glm::vec2(posX, posY);
 
-        // Use deltaX and deltaY here to rotate
-        m_camera->rotateX(0.005 * deltaX);
-        m_camera->rotateY(0.005 * deltaY);
+        // // Use deltaX and deltaY here to rotate
+        // m_camera->rotateX(0.005 * deltaX);
+        // m_camera->rotateY(0.005 * deltaY);
 
         float mx = event->position().x();
         float my = event->position().y();
@@ -692,7 +499,6 @@ void Realtime::timerEvent(QTimerEvent *event) {
     //     std::cout << deltaTime << std::endl;
     //     simulate(deltaTime);
     // }
-    std::cout << deltaTime << std::endl;
     simulate(deltaTime);
     clothvbovaoGeneration();
 

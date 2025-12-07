@@ -21,23 +21,8 @@
 #include "shapes/Cylinder.h"
 #include "shapes/Sphere.h"
 #include "camera/camera.h"
-#include <Eigen/Dense>
 #include "src/cloth.h"
-
-struct Joint {
-    std::string name;
-    Joint* parent = nullptr;
-
-    glm::vec3 localPosition;
-    glm::quat localRotation;
-
-    glm::quat worldRotation;
-
-    glm::mat4 localTransform;
-    glm::mat4 worldTransform;
-
-    bool dofX, dofY, dofZ;
-};
+#include "src/joint.h"
 
 class Realtime : public QOpenGLWidget
 {
@@ -74,6 +59,9 @@ private:
     void constrainSprings(int iterations);
     glm::vec3 friction(glm::vec3 velocity, glm::vec3 normal);
 
+    // Animation Methods
+    void setupSkeleton();
+
     // Tick Related Variables
     int m_timer;                                        // Stores timer which attempts to run ~60 times per second
     QElapsedTimer m_elapsedTimer;                       // Stores timer which keeps track of actual time between frames
@@ -103,7 +91,7 @@ private:
     glm::vec3 m_ikTarget = glm::vec3(0.f);
     float m_ikPlaneZ = 0.f;
 
-    std::vector<Joint*> m_chain;
+    std::vector<Joint*> m_joints;
 
     //Cloth
     Cloth* m_cloth;

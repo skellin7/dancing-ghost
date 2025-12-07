@@ -6,6 +6,7 @@
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QPushButton>
+#include <QRadioButton>
 #include "realtime.h"
 #include "utils/aspectratiowidget/aspectratiowidget.hpp"
 
@@ -40,6 +41,11 @@ private:
     void connectVertexRadius();
     void connectClothToClothCorrection();
 
+    void connectRWrist();
+    void connectLWrist();
+    void connectRAnkle();
+    void connectLAnkle();
+
     void connectUploadFile();
     void connectSaveImage();
     void connectExtraCredit();
@@ -57,6 +63,11 @@ private:
     QSlider *farSlider;
     QDoubleSpinBox *nearBox;
     QDoubleSpinBox *farBox;
+
+    QRadioButton *rwristCB;
+    QRadioButton *lwristCB;
+    QRadioButton *rankleCB;
+    QRadioButton *lankleCB;
 
     QSlider *xSlider;
     QSlider *ySlider;
@@ -107,6 +118,11 @@ private slots:
 
     void onValChangeNearSlider(int newValue);
     void onValChangeFarSlider(int newValue);
+
+    void onRWristChange();
+    void onLWristChange();
+    void onRAnkleChange();
+    void onLAnkleChange();
 
     void onValChangexSlider(int newValue);
     void onValChangeySlider(int newValue);
