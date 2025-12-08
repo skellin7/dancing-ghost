@@ -82,6 +82,7 @@ void Realtime::initializeGL() {
     glDisable(GL_CULL_FACE);
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
+    std::cout << size().width() << ", " << size().height() << std::endl;
 
     // Students: anything requiring OpenGL calls when the program starts should be done here
     m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
@@ -164,10 +165,10 @@ void Realtime::paintGL() {
             Joint::solveIK(m_joints[6], m_ikTarget);
         }
         else if (settings.endjoint == EndJoint::RANKLE) {
-            Joint::solveIK(m_joints[10], glm::vec3(m_joints[8]->getWorldPosition()) + m_ikTarget);
+            Joint::solveIK(m_joints[10], m_ikTarget);
         }
         else if (settings.endjoint == EndJoint::LANKLE) {
-            Joint::solveIK(m_joints[13], glm::vec3(m_joints[11]->getWorldPosition()) + m_ikTarget);
+            Joint::solveIK(m_joints[13], m_ikTarget);
         }
     }
 
@@ -463,6 +464,11 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         // Intersect ray with plane z = ikPlaneZ
         float t = (m_ikPlaneZ - r0.z) / dir.z;
         m_ikTarget = r0 + t * dir;
+
+        float canvasx = 2 * std::tan(m_camera->getWidthAngle() / 2) * ((mx + 0.5) / size().width() - 0.5);
+        float canvasy = 2 * std::tan(m_camera->getHeightAngle() / 2) * ((size().height() - 1 - my + 0.5) / size().height() - 0.5);
+        glm::vec4 pixel = m_camera->getInverseViewMatrix() * glm::vec4(canvasx, canvasy, -1.f, 1.f);
+        glm::vec4 d = glm::normalize(pixel - m_camera->getInverseViewMatrix()[3]);
 
         update(); // asks for a PaintGL() call to occur
     }

@@ -525,11 +525,11 @@ void MainWindow::initialize() {
     // vLayout->addWidget(p1Layout);
     // vLayout->addWidget(param2_label);
     // vLayout->addWidget(p2Layout);
-    vLayout->addWidget(camera_label);
-    vLayout->addWidget(near_label);
-    vLayout->addWidget(nearLayout);
-    vLayout->addWidget(far_label);
-    vLayout->addWidget(farLayout);
+    // vLayout->addWidget(camera_label);
+    // vLayout->addWidget(near_label);
+    // vLayout->addWidget(nearLayout);
+    // vLayout->addWidget(far_label);
+    // vLayout->addWidget(farLayout);
 
     vLayout->addWidget(anim_label);
     vLayout->addWidget(rwristCB);

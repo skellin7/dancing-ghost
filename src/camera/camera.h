@@ -30,6 +30,9 @@ public:
 
     glm::mat4 getProjMatrix() const;
 
+    float getHeightAngle() const;
+    float getWidthAngle() const;
+
 private:
     glm::mat4 m_viewMat;
     glm::mat4 m_invViewMat;

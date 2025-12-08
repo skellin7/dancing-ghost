@@ -49,13 +49,14 @@ void Joint::solveIK(Joint* endJoint, glm::vec3 ikTarget) {
     }
     std::reverse(chain.begin(), chain.end());
 
+    if (glm::length(ikTarget) > chainLen) {
+        ikTarget = chainLen * glm::normalize(ikTarget);
+    }
+    ikTarget += glm::vec3(chain.front()->getWorldPosition());
+
     for (int it = 0; it < ITER; it++) {
         for (Joint* j : chain) {
             j->computeFK();
-        }
-
-        if (glm::length(ikTarget) > chainLen) {
-            ikTarget = chainLen * glm::normalize(ikTarget);
         }
 
         glm::vec3 p = chain.back()->getWorldPosition();

@@ -105,3 +105,11 @@ glm::mat4 Camera::getInverseViewMatrix() const {
 glm::mat4 Camera::getProjMatrix() const {
     return m_projMat;
 }
+
+float Camera::getHeightAngle() const {
+    return m_heightAngle;
+}
+
+float Camera::getWidthAngle() const {
+    return 2.f * std::atan(m_aspectRatio * std::tan(m_heightAngle * 0.5f));
+}
