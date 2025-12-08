@@ -31,6 +31,7 @@ public:
     inline bool isEndJoint() { return m_endJoint; }
 
     inline void multLocalRotation(glm::quat mult) { m_localRotation = glm::normalize(mult * m_localRotation); }
+    inline void incLocalPosition(glm::vec3 inc) { m_localPosition += inc; }
 
     glm::vec3 getBoneVec();
 

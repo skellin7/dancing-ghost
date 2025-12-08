@@ -44,11 +44,6 @@ private:
     void connectRenderNormals();
     void connectRenderVertices();
 
-    void connectRWrist();
-    void connectLWrist();
-    void connectRAnkle();
-    void connectLAnkle();
-
     void connectUploadFile();
     void connectSaveImage();
     void connectExtraCredit();
@@ -66,11 +61,6 @@ private:
     QSlider *farSlider;
     QDoubleSpinBox *nearBox;
     QDoubleSpinBox *farBox;
-
-    QRadioButton *rwristCB;
-    QRadioButton *lwristCB;
-    QRadioButton *rankleCB;
-    QRadioButton *lankleCB;
 
     QRadioButton *renderNormals;
     QRadioButton *renderVertices;
@@ -124,11 +114,6 @@ private slots:
 
     void onValChangeNearSlider(int newValue);
     void onValChangeFarSlider(int newValue);
-
-    void onRWristChange();
-    void onLWristChange();
-    void onRAnkleChange();
-    void onLAnkleChange();
 
     void onRenderNormalsChange();
     void onRenderVerticesChange();

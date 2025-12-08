@@ -124,18 +124,18 @@ void Realtime::initializeGL() {
     m_camera = new Camera();
 
     SceneCameraData data = {
-        // .pos = glm::vec4(0.f, 0.f, 10.f, 1.f),
-        // .look = glm::vec4(0.f, 0.f, -10.f, 0.f),
-        // .up = glm::vec4(0.f, 1.f, 0.f, 0.f),
-        // .heightAngle = 0.5f,
-        // .aperture = 0.f,
-        // .focalLength = 0.f
-        .pos = glm::vec4(6.f, 3.f, 6.f, 1.f),
-        .look = glm::vec4(-6.f, -3.f, -6.f, 0.f),
+        .pos = glm::vec4(0.f, 0.f, 10.f, 1.f),
+        .look = glm::vec4(0.f, 0.f, -10.f, 0.f),
         .up = glm::vec4(0.f, 1.f, 0.f, 0.f),
         .heightAngle = 0.5f,
         .aperture = 0.f,
         .focalLength = 0.f
+        // .pos = glm::vec4(6.f, 3.f, 6.f, 1.f),
+        // .look = glm::vec4(-6.f, -3.f, -6.f, 0.f),
+        // .up = glm::vec4(0.f, 1.f, 0.f, 0.f),
+        // .heightAngle = 0.5f,
+        // .aperture = 0.f,
+        // .focalLength = 0.f
     };
     m_camera->setCameraData(data);
     m_camera->setWidthHeight(size().width(), size().height());
@@ -156,18 +156,6 @@ void Realtime::paintGL() {
                 Joint::solveIK(j, m_ikTarget);
             }
         }
-        // if (settings.endjoint == EndJoint::RWRIST) {
-        //     Joint::solveIK(m_joints[3], m_ikTarget);
-        // }
-        // else if (settings.endjoint == EndJoint::LWRIST) {
-        //     Joint::solveIK(m_joints[6], m_ikTarget);
-        // }
-        // else if (settings.endjoint == EndJoint::RANKLE) {
-        //     Joint::solveIK(m_joints[10], m_ikTarget);
-        // }
-        // else if (settings.endjoint == EndJoint::LANKLE) {
-        //     Joint::solveIK(m_joints[13], m_ikTarget);
-        // }
     }
 
     glm::vec3 color = glm::vec3(1.f, 1.f, 1.f);
@@ -179,8 +167,7 @@ void Realtime::paintGL() {
                      color, m_VP, m_shader, m_lineVAO, m_lineVBO);
         }
         else if (j->getBoneType() == BoneType::SPHERE) {
-            float r = glm::length(j->getWorldPosition()-j->getParent()->getWorldPosition());
-            Joint::drawCircle(j->getWorldPosition(), r, PARAM,
+            Joint::drawCircle(j->getWorldPosition(), glm::length(j->getBoneVec()), PARAM,
                        color, m_VP, m_shader, m_circleVAO, m_circleVBO);
         }
     }
@@ -380,6 +367,19 @@ void Realtime::timerEvent(QTimerEvent *event) {
     }
     if (m_keyMap[Qt::Key_Control]) {
         m_camera->moveUpDir(-5.f * deltaTime);
+    }
+
+    if (m_keyMap[Qt::Key_Left]) {
+        m_joints[0]->incLocalPosition(glm::vec3(-1.f * deltaTime, 0.f, 0.f));
+        for (Joint* j : m_joints) {
+            j->computeFK();
+        }
+    }
+    if (m_keyMap[Qt::Key_Right]) {
+        m_joints[0]->incLocalPosition(glm::vec3(1.f * deltaTime, 0.f, 0.f));
+        for (Joint* j : m_joints) {
+            j->computeFK();
+        }
     }
 
     simulate(deltaTime);

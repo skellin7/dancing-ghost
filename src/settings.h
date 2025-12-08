@@ -4,13 +4,6 @@
 #include <string>
 #include <glm/glm.hpp>
 
-enum EndJoint {
-    RWRIST,
-    LWRIST,
-    RANKLE,
-    LANKLE
-};
-
 struct Settings {
     std::string sceneFilePath;
     int shapeParameter1 = 1;
@@ -23,8 +16,6 @@ struct Settings {
     bool extraCredit2 = false;
     bool extraCredit3 = false;
     bool extraCredit4 = false;
-
-    int endjoint;
 
     float structuralK = 50;
     float shearK = 25;

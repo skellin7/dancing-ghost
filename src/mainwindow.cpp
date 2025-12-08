@@ -58,19 +58,6 @@ void MainWindow::initialize() {
     QLabel *far_label = new QLabel(); // Far plane label
     far_label->setText("Far Plane:");
 
-    rwristCB = new QRadioButton();
-    rwristCB->setText(QStringLiteral("Right Wrist"));
-    rwristCB->setChecked(true);
-
-    lwristCB = new QRadioButton();
-    lwristCB->setText(QStringLiteral("Left Wrist"));
-
-    rankleCB = new QRadioButton();
-    rankleCB->setText(QStringLiteral("Right Ankle"));
-
-    lankleCB = new QRadioButton();
-    lankleCB->setText(QStringLiteral("Left Ankle"));
-
     renderNormals = new QRadioButton();
     renderNormals->setText(QStringLiteral("render as normals"));
     renderNormals->setChecked(true);
@@ -538,11 +525,7 @@ void MainWindow::initialize() {
     // vLayout->addWidget(far_label);
     // vLayout->addWidget(farLayout);
 
-    vLayout->addWidget(anim_label);
-    vLayout->addWidget(rwristCB);
-    vLayout->addWidget(lwristCB);
-    vLayout->addWidget(rankleCB);
-    vLayout->addWidget(lankleCB);
+    // vLayout->addWidget(anim_label);
 
     vLayout->addWidget(cloth_label);
     vLayout->addWidget(renderNormals);
@@ -644,10 +627,6 @@ void MainWindow::connectUIElements() {
     connectParam2();
     connectNear();
     connectFar();
-    connectRWrist();
-    connectLWrist();
-    connectRAnkle();
-    connectLAnkle();
     connectx();
     connecty();
     connectz();
@@ -866,50 +845,6 @@ void MainWindow::onValChangeFarSlider(int newValue) {
     //farSlider->setValue(newValue);
     farBox->setValue(newValue/100.f);
     settings.farPlane = farBox->value();
-    realtime->settingsChanged();
-}
-
-void MainWindow::connectRWrist()
-{
-    connect(rwristCB, &QRadioButton::clicked, this, &MainWindow::onRWristChange);
-}
-
-void MainWindow::onRWristChange()
-{
-    settings.endjoint = EndJoint::RWRIST;
-    realtime->settingsChanged();
-}
-
-void MainWindow::connectLWrist()
-{
-    connect(lwristCB, &QRadioButton::clicked, this, &MainWindow::onLWristChange);
-}
-
-void MainWindow::onLWristChange()
-{
-    settings.endjoint = EndJoint::LWRIST;
-    realtime->settingsChanged();
-}
-
-void MainWindow::connectRAnkle()
-{
-    connect(rankleCB, &QRadioButton::clicked, this, &MainWindow::onRAnkleChange);
-}
-
-void MainWindow::onRAnkleChange()
-{
-    settings.endjoint = EndJoint::RANKLE;
-    realtime->settingsChanged();
-}
-
-void MainWindow::connectLAnkle()
-{
-    connect(lankleCB, &QRadioButton::clicked, this, &MainWindow::onLAnkleChange);
-}
-
-void MainWindow::onLAnkleChange()
-{
-    settings.endjoint = EndJoint::LANKLE;
     realtime->settingsChanged();
 }
 
