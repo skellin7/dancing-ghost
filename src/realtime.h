@@ -100,6 +100,7 @@ private:
     GLuint m_spring_vbo;
     GLuint m_spring_vao;
     GLuint m_cloth_ebo;
-    GLuint m_cloth_shader;
+    GLuint m_cloth_normals_shader;
+    GLuint m_cloth_vertices_shader;
 
 };

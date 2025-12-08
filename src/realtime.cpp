@@ -15,9 +15,6 @@
 Realtime::Realtime(QWidget *parent)
     : QOpenGLWidget(parent)
 {
-    //create cloth
-    m_cloth = new Cloth(settings.cloth_width, settings.cloth_length, settings.cloth_width_step, settings.cloth_length_step, 0.0f, glm::vec3(settings.x_clothBottomLeft, settings.y_clothBottomLeft, settings.z_clothBottomLeft));
-
     m_prev_mouse_pos = glm::vec2(size().width()/2, size().height()/2);
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
@@ -38,7 +35,8 @@ void Realtime::finish() {
 
     // Students: anything requiring OpenGL calls when the program exits should be done here
     glDeleteProgram(m_shader);
-    glDeleteProgram(m_cloth_shader);
+    glDeleteProgram(m_cloth_normals_shader);
+    glDeleteProgram(m_cloth_vertices_shader);
 
     glDeleteVertexArrays(1, &m_lineVAO);
     glDeleteVertexArrays(1, &m_circleVAO);
@@ -86,7 +84,11 @@ void Realtime::initializeGL() {
 
     // Students: anything requiring OpenGL calls when the program starts should be done here
     m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
-    m_cloth_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default_cloth.vert", ":/resources/shaders/default_cloth.frag");
+    m_cloth_normals_shader = ShaderLoader::createShaderProgram(":/resources/shaders/cloth_normals.vert", ":/resources/shaders/cloth_normals.frag");
+    m_cloth_vertices_shader = ShaderLoader::createShaderProgram(":/resources/shaders/cloth_vertices.vert", ":/resources/shaders/cloth_vertices.frag");
+
+    //create cloth
+    m_cloth = new Cloth(settings.cloth_width, settings.cloth_length, settings.cloth_width_step, settings.cloth_length_step, 0.0f, glm::vec3(settings.x_clothBottomLeft, settings.y_clothBottomLeft, settings.z_clothBottomLeft));
 
     float aspect = (float)size().width() / size().height();
     m_VP = glm::ortho(-3.f*aspect, 3.f*aspect, -3.f, 3.f, -10.f, 10.f);
@@ -123,8 +125,14 @@ void Realtime::initializeGL() {
     m_camera = new Camera();
 
     SceneCameraData data = {
-        .pos = glm::vec4(0.f, 0.f, 10.f, 1.f),
-        .look = glm::vec4(0.f, 0.f, -10.f, 0.f),
+        // .pos = glm::vec4(0.f, 0.f, 10.f, 1.f),
+        // .look = glm::vec4(0.f, 0.f, -10.f, 0.f),
+        // .up = glm::vec4(0.f, 1.f, 0.f, 0.f),
+        // .heightAngle = 0.5f,
+        // .aperture = 0.f,
+        // .focalLength = 0.f
+        .pos = glm::vec4(6.f, 3.f, 6.f, 1.f),
+        .look = glm::vec4(-6.f, -3.f, -6.f, 0.f),
         .up = glm::vec4(0.f, 1.f, 0.f, 0.f),
         .heightAngle = 0.5f,
         .aperture = 0.f,
@@ -134,20 +142,6 @@ void Realtime::initializeGL() {
     m_camera->setWidthHeight(size().width(), size().height());
     m_camera->setNearFar(settings.nearPlane, settings.farPlane);
 
-    m_sphere = new Sphere();
-
-    glGenBuffers(1, &m_sphere_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_sphere_vbo);
-
-    glGenVertexArrays(1, &m_sphere_vao);
-    glBindVertexArray(m_sphere_vao);
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), nullptr);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void *>(3 * sizeof(GLfloat)));
-
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // sceneChanged();
     settingsChanged();
@@ -187,184 +181,59 @@ void Realtime::paintGL() {
         }
     }
 
-    //Cloth stuff
-    glUseProgram(m_cloth_shader);
+    if (settings.renderVertices) {
+        glUseProgram(m_cloth_vertices_shader);
 
-    // for (RenderShapeData shape : m_renderData.shapes) {
-    //     int dataLen;
-    //     switch (shape.primitive.type) {
-    //     case PrimitiveType::PRIMITIVE_SPHERE:
-    //         glBindVertexArray(m_sphere_vao);
-    //         dataLen = m_sphere->dataLen();
-    //         break;
-    //     }
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_vertices_shader, "viewMatrix"), 1, GL_FALSE, &m_camera->getViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_vertices_shader, "projMatrix"), 1, GL_FALSE, &m_camera->getProjMatrix()[0][0]);
 
-    //     glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "modelMatrix"), 1, GL_FALSE, &shape.ctm[0][0]);
+        //painting vertices in cloth as points
+        glPointSize(10.0f);
+        glBindVertexArray(m_cloth_vao);
 
-    //     glDrawArrays(GL_TRIANGLES, 0, dataLen / 6);
-    //     glBindVertexArray(0);
-    // }
+        glm::mat4 identityMatrix = glm::mat4(glm::vec4(1.f, 0.f, 0.f, 0.f), glm::vec4(0.f, 1.f, 0.f, 0.f), glm::vec4(0.f, 0.f, 1.f, 0.f), glm::vec4(0.f, 0.f, 0.f, 1.f));
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_vertices_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
+        glm::mat4 inverseCTM = glm::inverse(identityMatrix); //same thing
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_vertices_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
 
-    glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "viewMatrix"), 1, GL_FALSE, &m_camera->getViewMatrix()[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "projMatrix"), 1, GL_FALSE, &m_camera->getProjMatrix()[0][0]);
+        glDrawArrays(GL_POINTS, 0, m_cloth->m_vertices.size());
+        glBindVertexArray(0);
 
-    // //uncomment for rendering cloth via normals
-    // glBindVertexArray(m_cloth_vao);
+        //painting springs in cloth as lines
+        glLineWidth(2.0f);
+        glBindVertexArray(m_spring_vao);
 
-    // glm::mat4 identityMatrix = glm::mat4(glm::vec4(1.f, 0.f, 0.f, 0.f), glm::vec4(0.f, 1.f, 0.f, 0.f), glm::vec4(0.f, 0.f, 1.f, 0.f), glm::vec4(0.f, 0.f, 0.f, 1.f));
-    // glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
-    // glm::mat4 inverseCTM = glm::inverse(identityMatrix); //same thing
-    // glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_vertices_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_vertices_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
 
-    // glDrawElements(GL_TRIANGLES, m_cloth->m_triangleIndices.size(), GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_LINES, 0, m_cloth->m_springs.size() * 2);
+        glBindVertexArray(0);
+    }
 
-    // glBindVertexArray(0);
+    else {
+        glUseProgram(m_cloth_normals_shader);
 
-    //uncomment for rendering cloth via lines and points
-    //painting vertices in cloth as points
-    glPointSize(10.0f);
-    glBindVertexArray(m_cloth_vao);
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "viewMatrix"), 1, GL_FALSE, &m_camera->getViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "projMatrix"), 1, GL_FALSE, &m_camera->getProjMatrix()[0][0]);
 
-    glm::mat4 identityMatrix = glm::mat4(glm::vec4(1.f, 0.f, 0.f, 0.f), glm::vec4(0.f, 1.f, 0.f, 0.f), glm::vec4(0.f, 0.f, 1.f, 0.f), glm::vec4(0.f, 0.f, 0.f, 1.f));
-    glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
-    glm::mat4 inverseCTM = glm::inverse(identityMatrix); //same thing
-    glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
+        glBindVertexArray(m_cloth_vao);
 
-    glDrawArrays(GL_POINTS, 0, m_cloth->m_vertices.size());
-    glBindVertexArray(0);
+        glm::mat4 identityMatrix = glm::mat4(glm::vec4(1.f, 0.f, 0.f, 0.f), glm::vec4(0.f, 1.f, 0.f, 0.f), glm::vec4(0.f, 0.f, 1.f, 0.f), glm::vec4(0.f, 0.f, 0.f, 1.f));
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
+        glm::mat4 inverseCTM = glm::inverse(identityMatrix); //same thing
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
 
-    //painting springs in cloth as lines
-    glLineWidth(2.0f);
-    glBindVertexArray(m_spring_vao);
+        glDrawElements(GL_TRIANGLES, m_cloth->m_triangleIndices.size(), GL_UNSIGNED_INT, 0);
 
-    glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(m_cloth_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
+        glBindVertexArray(0);
+    }
 
-    glDrawArrays(GL_LINES, 0, m_cloth->m_springs.size() * 2);
-    glBindVertexArray(0);
 
     //deactivate shader program
     glUseProgram(0);
 }
 
-void Realtime::clothvbovaoGeneration() {
-    // //uncomment for rendering cloth via normals
-    // glGenBuffers(1, &m_cloth_vbo);
-    // glBindBuffer(GL_ARRAY_BUFFER, m_cloth_vbo);
 
-    // m_cloth->setNormals(); //bc position of vertices changed
-
-    // std::vector<float> verticePositions;
-    // // for (auto vertex : m_cloth->m_vertices) {
-    // //     verticePositions.push_back(vertex.pos.x);
-    // //     verticePositions.push_back(vertex.pos.y);
-    // //     verticePositions.push_back(vertex.pos.z);
-    // //     verticePositions.push_back(vertex.normal.x);
-    // //     verticePositions.push_back(vertex.normal.y);
-    // //     verticePositions.push_back(vertex.normal.z);
-    // // }
-    // verticePositions = {-1, 2.2, -1, 0, -1, 0, -1, 2.2, -0.9, 0, -1, 0, -1, 2.2, -0.8, 0, -1, 0};
-
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * verticePositions.size(), verticePositions.data(), GL_STATIC_DRAW);
-
-    // glGenVertexArrays(1, &m_cloth_vao);
-    // glBindVertexArray(m_cloth_vao);
-
-    // glEnableVertexAttribArray(0);
-    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), reinterpret_cast<void*>(0));
-
-    // glEnableVertexAttribArray(1);
-    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-
-    // glDrawArrays(GL_TRIANGLES, 0, verticePositions.size() / 6);
-    // glBindVertexArray(0);
-
-    // // std::vector<int> triangleIndices = {0, 1, 2};
-
-    // // glGenBuffers(1, &m_cloth_ebo);
-    // // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_cloth_ebo);
-    // // // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLint) * m_cloth->m_triangleIndices.size(), m_cloth->m_triangleIndices.data(), GL_STATIC_DRAW);
-    // // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLint) * triangleIndices.size(), triangleIndices.data(), GL_STATIC_DRAW);
-
-
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindVertexArray(0);
-
-
-    //uncomment for rendering cloth via lines and points
-
-    //cloth vertcies
-    glGenBuffers(1, &m_cloth_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_cloth_vbo);
-
-    std::vector<float> verticePositions;
-    for (auto vertex : m_cloth->m_vertices) {
-        verticePositions.push_back(vertex.pos.x);
-        verticePositions.push_back(vertex.pos.y);
-        verticePositions.push_back(vertex.pos.z);
-    }
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * verticePositions.size(), verticePositions.data(), GL_STATIC_DRAW);
-
-    glGenVertexArrays(1, &m_cloth_vao);
-    glBindVertexArray(m_cloth_vao);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), reinterpret_cast<void*>(0));
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-
-    //cloth springs
-    glGenBuffers(1, &m_spring_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_spring_vbo);
-
-    std::vector<float> springData;
-    for (auto spring : m_cloth->m_springs) {
-
-        glm::vec3 color;
-
-        if (spring.type == SpringType::STRUCTURAL) {
-            color = glm::vec3(1, 0, 0); //Red
-        }
-        else if (spring.type == SpringType::SHEAR) {
-            color = glm::vec3(0, 1, 0); //Green
-        }
-        else if (spring.type == SpringType::BEND) {
-            color = glm::vec3(0, 0, 1); //Blue
-        }
-
-        Vertex* vOne = &m_cloth->m_vertices[spring.vertexOne];
-        springData.push_back(vOne->pos.x);
-        springData.push_back(vOne->pos.y);
-        springData.push_back(vOne->pos.z);
-        springData.push_back(color.x);
-        springData.push_back(color.y);
-        springData.push_back(color.z);
-
-        Vertex* vTwo = &m_cloth->m_vertices[spring.vertexTwo];
-        springData.push_back(vTwo->pos.x);
-        springData.push_back(vTwo->pos.y);
-        springData.push_back(vTwo->pos.z);
-        springData.push_back(color.x);
-        springData.push_back(color.y);
-        springData.push_back(color.z);
-    }
-
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * springData.size(), springData.data(), GL_STATIC_DRAW);
-
-    glGenVertexArrays(1, &m_spring_vao);
-    glBindVertexArray(m_spring_vao);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), reinterpret_cast<void*>(0));
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
 
 void Realtime::resizeGL(int w, int h) {
     // Tells OpenGL how big the screen is
@@ -388,12 +257,6 @@ void Realtime::settingsChanged() {
     if (!isValid()) {
         return;
     }
-
-    glBindBuffer(GL_ARRAY_BUFFER, m_sphere_vbo);
-    m_sphere->updateParams(settings.shapeParameter1, settings.shapeParameter2);
-    std::vector<float> vdata = m_sphere->generateShape();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * vdata.size(), vdata.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     m_camera->setNearFar(settings.nearPlane, settings.farPlane);
 
@@ -499,12 +362,6 @@ void Realtime::timerEvent(QTimerEvent *event) {
         m_camera->moveUpDir(-5.f * deltaTime);
     }
 
-    // static int totalElapsedMs = 0;
-    // totalElapsedMs += elapsedms;
-    // if (totalElapsedMs >= 5000) {
-    //     std::cout << deltaTime << std::endl;
-    //     simulate(deltaTime);
-    // }
     simulate(deltaTime);
     clothvbovaoGeneration();
 

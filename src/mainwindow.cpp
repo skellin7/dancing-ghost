@@ -71,6 +71,13 @@ void MainWindow::initialize() {
     lankleCB = new QRadioButton();
     lankleCB->setText(QStringLiteral("Left Ankle"));
 
+    renderNormals = new QRadioButton();
+    renderNormals->setText(QStringLiteral("render as normals"));
+    renderNormals->setChecked(true);
+
+    renderVertices = new QRadioButton();
+    renderVertices->setText(QStringLiteral("render as vertices"));
+
     QLabel *x_label = new QLabel(); // cloth bottom left x pos label
     x_label->setText("x pos:");
     QLabel *y_label = new QLabel(); // cloth bottom left y pos label
@@ -538,6 +545,9 @@ void MainWindow::initialize() {
     vLayout->addWidget(lankleCB);
 
     vLayout->addWidget(cloth_label);
+    vLayout->addWidget(renderNormals);
+    vLayout->addWidget(renderVertices);
+
     vLayout->addWidget(x_label);
     vLayout->addWidget(xLayout);
     vLayout->addWidget(y_label);
@@ -654,6 +664,8 @@ void MainWindow::connectUIElements() {
     connectClothToShapeCorrection();
     connectVertexRadius();
     connectClothToClothCorrection();
+    connectRenderNormals();
+    connectRenderVertices();
 }
 
 
@@ -898,6 +910,28 @@ void MainWindow::connectLAnkle()
 void MainWindow::onLAnkleChange()
 {
     settings.endjoint = EndJoint::LANKLE;
+    realtime->settingsChanged();
+}
+
+void MainWindow::connectRenderNormals()
+{
+    connect(renderNormals, &QRadioButton::clicked, this, &MainWindow::onRenderNormalsChange);
+}
+
+void MainWindow::onRenderNormalsChange()
+{
+    settings.renderVertices = false;
+    realtime->settingsChanged();
+}
+
+void MainWindow::connectRenderVertices()
+{
+    connect(renderVertices, &QRadioButton::clicked, this, &MainWindow::onRenderVerticesChange);
+}
+
+void MainWindow::onRenderVerticesChange()
+{
+    settings.renderVertices = true;
     realtime->settingsChanged();
 }
 
