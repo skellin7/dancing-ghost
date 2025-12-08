@@ -45,7 +45,6 @@ void Cloth::createVertices() {
     }
 }
 
-
 void Cloth::createSprings() {
     int widthPoints = static_cast<int>(width / widthStep) + 1;
     int depthPoints = static_cast<int>(depth / depthStep) + 1;
