@@ -82,7 +82,6 @@ void Realtime::initializeGL() {
     glDisable(GL_CULL_FACE);
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
-    std::cout << size().width() << ", " << size().height() << std::endl;
 
     // Students: anything requiring OpenGL calls when the program starts should be done here
     m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
@@ -158,18 +157,23 @@ void Realtime::paintGL() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     if (m_mouseDown) {
-        if (settings.endjoint == EndJoint::RWRIST) {
-            Joint::solveIK(m_joints[3], m_ikTarget);
+        for (Joint* j : m_joints) {
+            if (m_activeJoint == j->getName()) {
+                Joint::solveIK(j, m_ikTarget);
+            }
         }
-        else if (settings.endjoint == EndJoint::LWRIST) {
-            Joint::solveIK(m_joints[6], m_ikTarget);
-        }
-        else if (settings.endjoint == EndJoint::RANKLE) {
-            Joint::solveIK(m_joints[10], m_ikTarget);
-        }
-        else if (settings.endjoint == EndJoint::LANKLE) {
-            Joint::solveIK(m_joints[13], m_ikTarget);
-        }
+        // if (settings.endjoint == EndJoint::RWRIST) {
+        //     Joint::solveIK(m_joints[3], m_ikTarget);
+        // }
+        // else if (settings.endjoint == EndJoint::LWRIST) {
+        //     Joint::solveIK(m_joints[6], m_ikTarget);
+        // }
+        // else if (settings.endjoint == EndJoint::RANKLE) {
+        //     Joint::solveIK(m_joints[10], m_ikTarget);
+        // }
+        // else if (settings.endjoint == EndJoint::LANKLE) {
+        //     Joint::solveIK(m_joints[13], m_ikTarget);
+        // }
     }
 
     glm::vec3 color = glm::vec3(1.f, 1.f, 1.f);
@@ -418,6 +422,27 @@ void Realtime::mousePressEvent(QMouseEvent *event) {
     if (event->buttons().testFlag(Qt::LeftButton)) {
         m_mouseDown = true;
         m_prev_mouse_pos = glm::vec2(event->position().x(), event->position().y());
+
+        float mx = event->position().x();
+        float my = event->position().y();
+
+        float canvasx = 2 * std::tan(m_camera->getWidthAngle() / 2) * ((mx + 0.5) / size().width() - 0.5);
+        float canvasy = 2 * std::tan(m_camera->getHeightAngle() / 2) * ((size().height() - 1 - my + 0.5) / size().height() - 0.5);
+        float canvasz = m_camera->getInverseViewMatrix()[3].z;
+        canvasx *= canvasz;
+        canvasy *= canvasz;
+        glm::vec4 pixel = m_camera->getInverseViewMatrix() * glm::vec4(canvasx, canvasy, -canvasz, 1.f);
+
+        float minDist = FLT_MAX;
+        for (Joint* j : m_joints) {
+            if (j->isEndJoint()) {
+                float dist = glm::distance(pixel, j->getWorldPosition());
+                if (dist < minDist) {
+                    m_activeJoint = j->getName();
+                    minDist = dist;
+                }
+            }
+        }
     }
 }
 
@@ -464,11 +489,6 @@ void Realtime::mouseMoveEvent(QMouseEvent *event) {
         // Intersect ray with plane z = ikPlaneZ
         float t = (m_ikPlaneZ - r0.z) / dir.z;
         m_ikTarget = r0 + t * dir;
-
-        float canvasx = 2 * std::tan(m_camera->getWidthAngle() / 2) * ((mx + 0.5) / size().width() - 0.5);
-        float canvasy = 2 * std::tan(m_camera->getHeightAngle() / 2) * ((size().height() - 1 - my + 0.5) / size().height() - 0.5);
-        glm::vec4 pixel = m_camera->getInverseViewMatrix() * glm::vec4(canvasx, canvasy, -1.f, 1.f);
-        glm::vec4 d = glm::normalize(pixel - m_camera->getInverseViewMatrix()[3]);
 
         update(); // asks for a PaintGL() call to occur
     }

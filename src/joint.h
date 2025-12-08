@@ -19,6 +19,7 @@ public:
     Joint(std::string name, Joint* parent, glm::vec3 localPosition, glm::quat localRotation,
                  bool dofX, bool dofY, bool dofZ, bool endJoint, BoneType boneType);
 
+    inline std::string getName() { return m_name; }
     inline glm::quat getWorldRotation() { return m_worldRotation; }
     inline glm::mat4 getWorldTransform() { return m_worldTransform; }
     inline glm::vec4 getWorldPosition() { return m_worldTransform[3]; }

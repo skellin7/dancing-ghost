@@ -91,6 +91,8 @@ private:
     glm::vec3 m_ikTarget = glm::vec3(0.f);
     float m_ikPlaneZ = 0.f;
 
+    std::string m_activeJoint;
+
     std::vector<Joint*> m_joints;
 
     //Cloth
