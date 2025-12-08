@@ -56,6 +56,7 @@ add_executable(${PROJECT_NAME}
     src/camera/Camera.h
     src/cloth.h
     src/joint.h
+    src/clothgeneration.cpp
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`
@@ -85,8 +86,10 @@ qt6_add_resources(${PROJECT_NAME} "Resources"
     FILES
         resources/shaders/default.frag
         resources/shaders/default.vert
-        resources/shaders/default_cloth.frag
-        resources/shaders/default_cloth.vert
+        resources/shaders/cloth_vertices.frag
+        resources/shaders/cloth_vertices.vert
+        resources/shaders/cloth_normals.frag
+        resources/shaders/cloth_normals.vert
 )
 
 # GLEW: this provides support for Windows (including 64-bit)

@@ -49,7 +49,7 @@ struct Settings {
     float clothVertexRadius;
     float clothToClothCollisionCorrection = 0.001;
 
-
+    bool renderVertices = false; //false = render cloth as normals, true = render cloth as vertices
 
 };
 

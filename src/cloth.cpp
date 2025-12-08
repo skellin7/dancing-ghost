@@ -31,14 +31,14 @@ void Cloth::createVertices() {
             //     v = {position, position, 1.0f, true, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.radius, {}};
             // }
 
-            if (i >= 0.15 * widthPoints && i <= 0.35 * widthPoints && j >= 0.15 * depthPoints && j <= 0.35 * depthPoints || i >= 0.85 * widthPoints && i <= 0.65 * widthPoints && j >= 0.85 * depthPoints && j <= 0.65 * depthPoints) {
-                v = {position, position, 1.0f, true, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}};
-            }
-            else {
-                v = {position, position, 1.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}};
-            }
+            // if (i >= 0.15 * widthPoints && i <= 0.35 * widthPoints && j >= 0.15 * depthPoints && j <= 0.35 * depthPoints || i >= 0.85 * widthPoints && i <= 0.65 * widthPoints && j >= 0.85 * depthPoints && j <= 0.65 * depthPoints) {
+            //     v = {position, position, 1.0f, true, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}};
+            // }
+            // else {
+            //     v = {position, position, 1.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}};
+            // }
 
-            // v = {position, position, 3.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}}; //uncomment to unanchor all vertices
+            v = {position, position, 3.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}}; //uncomment to unanchor all vertices
 
             m_vertices.push_back(v);
         }
@@ -99,11 +99,15 @@ void Cloth::createSprings() {
                 int rightNeighbor = (i+2) * depthPoints + j; //traveling down x axis towards +x
                 float restLen = glm::length(m_vertices[rightNeighbor].pos - m_vertices[current].pos);
                 m_springs.push_back({current, rightNeighbor, settings.bendK, settings.damping, SpringType::BEND, restLen});
+                m_vertices[current].neighbors.push_back(rightNeighbor);
+                m_vertices[rightNeighbor].neighbors.push_back(current);
             }
             if (j < depthPoints - 2) { //vertex not on the top edge of cloth
                 int topNeighbor = i * depthPoints + (j+2); //traveling down z axis towards -z
                 float restLen = glm::length(m_vertices[topNeighbor].pos - m_vertices[current].pos);
                 m_springs.push_back({current, topNeighbor, settings.bendK, settings.damping, SpringType::BEND, restLen});
+                m_vertices[current].neighbors.push_back(topNeighbor);
+                m_vertices[topNeighbor].neighbors.push_back(current);
             }
         }
     }

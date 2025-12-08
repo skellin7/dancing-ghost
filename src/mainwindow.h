@@ -41,6 +41,9 @@ private:
     void connectVertexRadius();
     void connectClothToClothCorrection();
 
+    void connectRenderNormals();
+    void connectRenderVertices();
+
     void connectRWrist();
     void connectLWrist();
     void connectRAnkle();
@@ -68,6 +71,9 @@ private:
     QRadioButton *lwristCB;
     QRadioButton *rankleCB;
     QRadioButton *lankleCB;
+
+    QRadioButton *renderNormals;
+    QRadioButton *renderVertices;
 
     QSlider *xSlider;
     QSlider *ySlider;
@@ -123,6 +129,9 @@ private slots:
     void onLWristChange();
     void onRAnkleChange();
     void onLAnkleChange();
+
+    void onRenderNormalsChange();
+    void onRenderVerticesChange();
 
     void onValChangexSlider(int newValue);
     void onValChangeySlider(int newValue);

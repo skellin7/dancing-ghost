@@ -157,7 +157,7 @@ std::vector<Joint*> Joint::setupSkeleton() {
                                  false, false, true, true, BoneType::CYLINDER};
 
     Joint *hip = new Joint{"hip", chest,
-                           glm::vec3(0.f, -0.75f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
+                           glm::vec3(0.f, -0.5f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                            false, false, false, false, BoneType::CYLINDER};
 
     Joint *rightHip = new Joint{"rightHip", hip,

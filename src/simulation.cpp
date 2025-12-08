@@ -1,5 +1,7 @@
 #include "src/realtime.h"
 #include "src/settings.h"
+#include "src/joint.h"
+#include "iostream"
 
 
 void Realtime::simulate(float deltaTime) {
@@ -89,187 +91,128 @@ void Realtime::verletIntegration(std::vector<glm::vec3> forces, float deltaTime)
 void Realtime::solveCollisions(int iterations, float deltaTime) {
     // for (int iter = 0; iter < iterations; iter++) {
 
-        for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
-            Vertex* v = &m_cloth->m_vertices[i];
+    for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
+        Vertex* v = &m_cloth->m_vertices[i];
 
-            if (v->anchored) {
-                continue;
-            }
+        if (v->anchored) {
+            continue;
+        }
 
-            if (m_renderData.shapes.size() == 0) {
-                continue;
-            }
+        // if (m_renderData.shapes.size() == 0) {
+        //     continue;
+        // }
 
-            else {
-                glm::vec3 newPos = v->pos;
+        else {
+            glm::vec3 newPos = v->pos;
 
-                for (const RenderShapeData& shape : m_renderData.shapes) {
+            for (Joint *joint : m_joints) {
 
-                    if (shape.primitive.type == PrimitiveType::PRIMITIVE_SPHERE) {
+                if (joint->getBoneType() == SPHERE) {
 
-                        glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
-                        glm::vec3 sphereCenter = glm::vec4(0,0,0,1.0f);
+                    glm::mat4 ctm = joint->getWorldTransform();
 
-                        glm::vec3 centerToNewPos = newPosOS - sphereCenter;
-                        float distance = glm::length(centerToNewPos);
-                        //float radius = 0.5f * glm::length(glm::vec3(shape.ctm[0]));
-                        float radius = 0.5f;
+                    glm::vec3 newPosOS = glm::vec3(glm::inverse(ctm) * glm::vec4(newPos, 1.0f));
+                    glm::vec3 sphereCenter = glm::vec4(0,0,0,1.0f);
 
-                        //repulsion correction
-                        float epsilon = settings.clothToShapeCollisionCorrection;
+                    glm::vec3 centerToNewPos = newPosOS - sphereCenter;
+                    float distance = glm::length(centerToNewPos);
+                    float radius = 0.4f;
 
-                        //vertex is inside the sphere
-                        if (distance < radius + epsilon) {
+                    //repulsion correction
+                    float epsilon = settings.clothToShapeCollisionCorrection;
 
-                            glm::vec3 normalOS = glm::normalize(centerToNewPos);
+                    //vertex is inside the sphere
+                    if (distance < radius + epsilon) {
 
-                            //position correction in Object Space
-                            glm::vec3 repelledPosOS = sphereCenter + normalOS * (radius + epsilon);
+                        glm::vec3 normalOS = glm::normalize(centerToNewPos);
 
-                            //position correction in World Space
-                            glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
-                            newPos = repelledPosWS;
+                        //position correction in Object Space
+                        glm::vec3 repelledPosOS = sphereCenter + normalOS * (radius + epsilon);
 
-                            glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
+                        //position correction in World Space
+                        glm::vec3 repelledPosWS = glm::vec3(ctm * glm::vec4(repelledPosOS, 1.0f));
+                        newPos = repelledPosWS;
 
-                            //friction
-                            glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
-                            normalWS = glm::normalize(normalWS);
-                            glm::vec3 frictionalForce = friction(velocity, normalWS);
-                            v->forces += frictionalForce;
-                        }
+                        glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
 
-                        v->pos = newPos;
+                        //friction
+                        glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(ctm))) * normalOS;
+                        normalWS = glm::normalize(normalWS);
+                        glm::vec3 frictionalForce = friction(velocity, normalWS);
+                        v->forces += frictionalForce;
                     }
 
-                    if (shape.primitive.type == PrimitiveType::PRIMITIVE_CUBE) { //sticking to the bottom fix that
+                    v->pos = newPos;
+                }
 
-                        float margin = 0.1f;
-                        glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
+                if (joint->getBoneType() == CYLINDER) {
 
-                        //vertex is inside cube
-                        if (fabs(newPosOS.x) <= 0.5f + margin && fabs(newPosOS.y) <= 0.5f + margin && fabs(newPosOS.z) <= 0.5f + margin) {
+                    glm::mat4 ctm = joint->getWorldTransform();
+                    glm::vec3 newPosOS = glm::vec3(glm::inverse(ctm) * glm::vec4(newPos, 1.0f));
+                    float radius = 0.1f;
+                    // float halfHeight = 0.5f;
 
-                            //distance to each face
-                            float distance_x = 0.5 - fabs(newPosOS.x);
-                            float distance_y = 0.5 - fabs(newPosOS.y);
-                            float distance_z = 0.5 - fabs(newPosOS.z);
+                    float halfHeight = glm::length(joint->getBoneVec()) / 2.0f;
 
-                            glm::vec3 normalOS(0.f);
-                            glm::vec3 repelledPosOS = newPosOS;
+                    float epsilon = settings.clothToShapeCollisionCorrection;
 
-                            //repulsion correction
-                            float epsilon = settings.clothToShapeCollisionCorrection;
+                    //distance from axis
+                    float distance = glm::length(glm::vec2(newPosOS.x, newPosOS.z));
 
-                            //find closest face
-                            //position correction in Object Space
-                            if (distance_x <= distance_y && distance_x <= distance_z) {
-                                repelledPosOS.x = (newPosOS.x > 0 ? 0.5f + epsilon: -0.5f - epsilon);
-                                normalOS = glm::vec3((newPosOS.x > 0 ? 1 : -1), 0, 0);
-                            }
-                            else if (distance_y <= distance_x && distance_y <= distance_z) {
-                                repelledPosOS.y = (newPosOS.y > 0 ? 0.5f + epsilon: -0.5f - epsilon);
-                                normalOS = glm::vec3(0, (newPosOS.y > 0 ? 1 : -1), 0);
-                            }
-                            else if (distance_z <= distance_x && distance_z <= distance_y) {
-                                repelledPosOS.z = (newPosOS.z > 0 ? 0.5f + epsilon: -0.5f - epsilon);
-                                normalOS = glm::vec3(0, 0, (newPosOS.z > 0 ? 1 : -1));
-                            }
+                    glm::vec3 cylinderCenter = glm::vec4(0,0,0,1.0f);
 
-                            //position correction in World Space
-                            glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
-                            newPos = repelledPosWS;
+                    //vertex is inside cylinder
+                    if (distance < radius + epsilon && newPosOS.y > -halfHeight - epsilon && newPosOS.y < halfHeight + epsilon) {
 
-                            glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
+                        glm::vec3 normalOS(0.f);
+                        glm::vec3 repelledPosOS = newPosOS;
 
-                            //friction
-                            glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
-                            normalWS = glm::normalize(normalWS);
-                            glm::vec3 frictionalForce = friction(velocity, normalWS);
-                            v->forces += frictionalForce;
+                        // Distances to boundaries
+                        float distanceToSide = radius - distance;
+                        float distanceToTop  = halfHeight - newPosOS.y;
+                        float distanceToBottom  = newPosOS.y + halfHeight;
+
+                        //find closest boundary
+                        if (distanceToSide <= distanceToTop && distanceToSide <= distanceToBottom) {
+                            //sides of cylinder
+                            glm::vec2 direction = glm::normalize(glm::vec2(newPosOS.x, newPosOS.z));
+                            normalOS = glm::vec3(direction.x, 0.f, direction.y);
+                            repelledPosOS.x = direction.x * (radius + epsilon);
+                            repelledPosOS.z = direction.y * (radius + epsilon);
+                        }
+                        else if (distanceToTop <= distanceToBottom) {
+                            //top cap
+                            normalOS = glm::vec3(0, 1, 0);
+                            repelledPosOS.y = halfHeight + epsilon;
+
+                        }
+                        else {
+                            //bottom cap
+                            normalOS = glm::vec3(0, -1, 0);
+                            repelledPosOS.y = -halfHeight - epsilon;
                         }
 
-                        v->pos = newPos;
+                        //position correction in World Space
+                        glm::vec3 repelledPosWS = glm::vec3(ctm * glm::vec4(repelledPosOS, 1.0f));
+                        newPos = repelledPosWS;
+
+                        glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
+
+                        //friction
+                        glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(ctm))) * normalOS;
+                        normalWS = glm::normalize(normalWS);
+                        glm::vec3 frictionalForce = friction(velocity, normalWS);
+                        v->forces += frictionalForce;
                     }
 
-                    if (shape.primitive.type == PrimitiveType::PRIMITIVE_CYLINDER) {
-
-                        glm::vec3 newPosOS = glm::vec3(glm::inverse(shape.ctm) * glm::vec4(newPos, 1.0f));
-
-                        float radius = 0.5f;
-                        //float radius = 0.5f * glm::length(glm::vec3(shape.ctm[0]));
-                        float epsilon = settings.clothToShapeCollisionCorrection;
-
-                        //distance from axis
-                        float distance = glm::length(glm::vec2(newPosOS.x, newPosOS.z));
-
-                        glm::vec3 cylinderCenter = glm::vec4(0,0,0,1.0f);
-                        glm::vec3 centerToNewPos = newPosOS - cylinderCenter;
-
-                        //vertex is inside cylinder
-                        if (distance < radius + epsilon && newPosOS.y > -0.5f - epsilon && newPosOS.y < 0.5f + epsilon) {
-
-                            glm::vec3 normalOS(0.f);
-                            glm::vec3 repelledPosOS = newPosOS;
-
-                            // Distances to boundaries
-                            float distanceToSide = radius - distance;
-                            float distanceToTop  = 0.5f - newPosOS.y;
-                            float distanceToBottom  = newPosOS.y + 0.5f;
-
-                            //find closest boundary
-                            if (distanceToSide <= distanceToTop && distanceToSide <= distanceToBottom) {
-                                //sides of cylinder
-                                glm::vec2 direction = glm::normalize(glm::vec2(newPosOS.x, newPosOS.z));
-                                normalOS = glm::vec3(direction.x, 0.f, direction.y);
-                                repelledPosOS.x = direction.x * (radius + epsilon);
-                                repelledPosOS.z = direction.y * (radius + epsilon);
-
-                                //repelledPosOS.x = direction.x + normalOS.x * (radius + epsilon);
-                                //repelledPosOS.z = direction.y + normalOS.z * (radius + epsilon);
-                            }
-                            else if (distanceToTop <= distanceToBottom) {
-                                //top cap
-                                normalOS = glm::vec3(0, 1, 0);
-                                //normalOS = glm::normalize(centerToNewPos);
-
-                                //repelledPosOS.y = distanceToTop + epsilon;
-
-                                repelledPosOS.y = 0.5f + epsilon;
-
-                            }
-                            else {
-                                //bottom cap
-                                normalOS = glm::vec3(0, -1, 0);
-                                //normalOS = glm::normalize(centerToNewPos);
-
-                                //repelledPosOS.y = distanceToBottom - epsilon;
-
-                                repelledPosOS.y = -0.5f - epsilon;
-                                //repelledPosOS.y = cylinderCenter.y + normalOS.y * (-0.5f - epsilon);
-                            }
-
-                            //position correction in World Space
-                            glm::vec3 repelledPosWS = glm::vec3(shape.ctm * glm::vec4(repelledPosOS, 1.0f));
-                            newPos = repelledPosWS;
-
-                            glm::vec3 velocity = (repelledPosWS - v->prev_pos) / deltaTime;
-
-                            //friction
-                            glm::vec3 normalWS = glm::transpose(glm::inverse(glm::mat3(shape.ctm))) * normalOS;
-                            normalWS = glm::normalize(normalWS);
-                            glm::vec3 frictionalForce = friction(velocity, normalWS);
-                            v->forces += frictionalForce;
-                        }
-
-                        v->pos = newPos;
-
-                    }
-
+                    v->pos = newPos;
 
                 }
+
+
             }
         }
+    }
     //}
 }
 
@@ -277,76 +220,76 @@ void Realtime::solveCollisions(int iterations, float deltaTime) {
 void::Realtime::solveClothToClothCollisions(int iterations, float deltaTime) {
     //for (int iter = 0; iter < iterations; iter++) {
 
-        for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
+    for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
 
-            Vertex* v1 = &m_cloth->m_vertices[i];
+        Vertex* v1 = &m_cloth->m_vertices[i];
 
-            for (int j = 0; j < m_cloth->m_vertices.size(); j++) {
+        for (int j = 0; j < m_cloth->m_vertices.size(); j++) {
 
-                if (i == j) { //same vertex
-                    continue;
-                }
+            if (i == j) { //same vertex
+                continue;
+            }
 
-                bool isNeighbor = false;
-                for (int n : v1->neighbors) {
-                    if (n == j) { //m_vertices[j] is a neighbor of m_vertices[i]
-                        isNeighbor = true;
-                        break;
-                    }
-                }
-
-                if (isNeighbor) {
-                    continue;
-                }
-
-                Vertex* v2 = &m_cloth->m_vertices[j];
-                float distance = glm::length(v2->pos - v1->pos); //distance between vertices
-
-                if (distance < 2*settings.clothVertexRadius) {
-                    glm::vec3 direction = glm::normalize(v2->pos - v1->pos); //direction from v1 to v2
-                    float overlap = 2*settings.clothVertexRadius - distance;
-                    v1->pos -= 0.5f * overlap * direction + settings.clothToClothCollisionCorrection;
-                    v2->pos += 0.5f * overlap * direction - settings.clothToClothCollisionCorrection;
+            bool isNeighbor = false;
+            for (int n : v1->neighbors) {
+                if (n == j) { //m_vertices[j] is a neighbor of m_vertices[i]
+                    isNeighbor = true;
+                    break;
                 }
             }
+
+            if (isNeighbor) {
+                continue;
+            }
+
+            Vertex* v2 = &m_cloth->m_vertices[j];
+            float distance = glm::length(v2->pos - v1->pos); //distance between vertices
+
+            if (distance < 2*settings.clothVertexRadius) {
+                glm::vec3 direction = glm::normalize(v2->pos - v1->pos); //direction from v1 to v2
+                float overlap = 2*settings.clothVertexRadius - distance;
+                v1->pos -= 0.5f * (overlap + settings.clothToClothCollisionCorrection) * direction;
+                v2->pos += 0.5f * (overlap + settings.clothToClothCollisionCorrection) * direction;
+            }
         }
+    }
     //}
 }
 
 
 void Realtime::constrainSprings(int iterations) {
     //for (int iter = 0; iter < iterations; iter++) {
-        for (Spring& s : m_cloth->m_springs) {
+    for (Spring& s : m_cloth->m_springs) {
 
-            Vertex* v1 = &m_cloth->m_vertices[s.vertexOne];
-            Vertex* v2 = &m_cloth->m_vertices[s.vertexTwo];
+        Vertex* v1 = &m_cloth->m_vertices[s.vertexOne];
+        Vertex* v2 = &m_cloth->m_vertices[s.vertexTwo];
 
-            float distance = glm::length(v2->pos - v1->pos); //distance between vertices
-            glm::vec3 direction = glm::normalize(v2->pos - v1->pos); //direction from v1 to v2
+        float distance = glm::length(v2->pos - v1->pos); //distance between vertices
+        glm::vec3 direction = glm::normalize(v2->pos - v1->pos); //direction from v1 to v2
 
-            if (distance < 1e-6f) { //no distance between the two vertices (spring length effectively 0)
-                continue;
+        if (distance < 1e-6f) { //no distance between the two vertices (spring length effectively 0)
+            continue;
+        }
+
+        float stretch = distance - s.rest_length;
+        float maxStretch = s.rest_length * 0.1f; //spring can stretch 10%
+
+        //stretch correction
+        if (fabs(stretch) > maxStretch) {
+            float stretchCorrection = stretch - (stretch > 0 ? maxStretch : -maxStretch);
+
+            if (!v1->anchored && !v2->anchored) {
+                v1->pos += 0.5f * direction * stretchCorrection;
+                v2->pos -= 0.5f * direction * stretchCorrection;
             }
-
-            float stretch = distance - s.rest_length;
-            float maxStretch = s.rest_length * 0.1f; //spring can stretch 10%
-
-            //stretch correction
-            if (fabs(stretch) > maxStretch) {
-                float stretchCorrection = stretch - (stretch > 0 ? maxStretch : -maxStretch);
-
-                if (!v1->anchored && !v2->anchored) {
-                    v1->pos += 0.5f * direction * stretchCorrection;
-                    v2->pos -= 0.5f * direction * stretchCorrection;
-                }
-                else if (!v1->anchored) {
-                    v1->pos += direction * stretchCorrection;
-                }
-                else if (!v2->anchored) {
-                    v2->pos -= direction * stretchCorrection;
-                }
+            else if (!v1->anchored) {
+                v1->pos += direction * stretchCorrection;
+            }
+            else if (!v2->anchored) {
+                v2->pos -= direction * stretchCorrection;
             }
         }
+    }
     //}
 }
 
