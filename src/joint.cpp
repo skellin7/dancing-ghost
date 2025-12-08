@@ -193,7 +193,7 @@ std::vector<Joint*> Joint::setupSkeleton() {
                             false, false, false, false, BoneType::CYLINDER};
 
     Joint *head = new Joint{"head", neck,
-                            glm::vec3(0.f, 0.4f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
+                            glm::vec3(0.f, 0.2f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                             false, false, false, false, BoneType::SPHERE};
 
     return {chest, rightShoulder, rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist,

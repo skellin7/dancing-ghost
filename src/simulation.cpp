@@ -14,6 +14,7 @@ void Realtime::simulate(float deltaTime) {
         solveCollisions(1, deltaTime);
 
     }
+
 }
 
 
@@ -98,10 +99,6 @@ void Realtime::solveCollisions(int iterations, float deltaTime) {
             continue;
         }
 
-        // if (m_renderData.shapes.size() == 0) {
-        //     continue;
-        // }
-
         else {
             glm::vec3 newPos = v->pos;
 
@@ -116,7 +113,12 @@ void Realtime::solveCollisions(int iterations, float deltaTime) {
 
                     glm::vec3 centerToNewPos = newPosOS - sphereCenter;
                     float distance = glm::length(centerToNewPos);
-                    float radius = 0.4f;
+                    float radius = 0.2f;
+
+                    glm::vec3 sphereTop(0.f);
+                    if (joint->getName() == "head") {
+                        sphereTop = 2.f*joint->getWorldPosition() - joint->getParent()->getWorldPosition();
+                    }
 
                     //repulsion correction
                     float epsilon = settings.clothToShapeCollisionCorrection;
@@ -140,6 +142,12 @@ void Realtime::solveCollisions(int iterations, float deltaTime) {
                         normalWS = glm::normalize(normalWS);
                         glm::vec3 frictionalForce = friction(velocity, normalWS);
                         v->forces += frictionalForce;
+
+                        if (joint->getName() == "head") {
+                            if (glm::abs(length(repelledPosWS) - length(sphereTop)) < 0.001f) {
+                                v->anchored = true;
+                            }
+                        }
                     }
 
                     v->pos = newPos;
@@ -149,7 +157,7 @@ void Realtime::solveCollisions(int iterations, float deltaTime) {
 
                     glm::mat4 ctm = joint->getWorldTransform();
                     glm::vec3 newPosOS = glm::vec3(glm::inverse(ctm) * glm::vec4(newPos, 1.0f));
-                    float radius = 0.1f;
+                    float radius = 0.3f;
                     // float halfHeight = 0.5f;
 
                     float halfHeight = glm::length(joint->getBoneVec()) / 2.0f;
