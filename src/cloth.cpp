@@ -25,7 +25,8 @@ void Cloth::createVertices() {
             Vertex v;
 
             //if (i == 0 && j <= .25* widthPoints || i == 0 && j >= .75* widthPoints) {
-            //if (i == 0 && j == 0 || i == 0 && j == depthPoints-1)
+            //if (i == 0 && j == 0 || i == 0 && j == depthPoints-1){
+
 
             // if (i == 0 && j >= 0.15 * depthPoints && j <= 0.35 * depthPoints || i == 0 && j >= 0.85 * depthPoints && j <= 0.65 * depthPoints) {
             //     v = {position, position, 1.0f, true, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.radius, {}};
@@ -38,7 +39,7 @@ void Cloth::createVertices() {
             //     v = {position, position, 1.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}};
             // }
 
-            v = {position, position, 3.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}}; //uncomment to unanchor all vertices
+            v = {position, position, 3.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec2(float(i) / float(widthPoints - 1), float(j) / float(depthPoints - 1)), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}}; //uncomment to unanchor all vertices
 
             m_vertices.push_back(v);
         }

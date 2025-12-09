@@ -15,6 +15,48 @@ void Realtime::simulate(float deltaTime) {
 
     }
 
+    // for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
+    //     Vertex* v = &m_cloth->m_vertices[i];
+
+    //     if (v->anchored) {
+    //         for (Joint *joint : m_joints) {
+    //             glm::vec3 sphereTop(0.f);
+    //             if (joint->getName() == "head") {
+    //                 sphereTop = 2.f*joint->getWorldPosition() - joint->getParent()->getWorldPosition();
+    //             }
+    //             if (joint->getName() == "head") {
+    //                 if (glm::abs(length(v->pos) - length(sphereTop)) < 0.001f) {
+    //                     v->anchored = true;
+    //                     break;
+    //                 }
+    //                 else {
+    //                     v->anchored = false;
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     else {
+    //         for (Joint *joint : m_joints) {
+    //             glm::vec3 sphereTop(0.f);
+    //             if (joint->getName() == "head") {
+    //                 sphereTop = 2.f*joint->getWorldPosition() - joint->getParent()->getWorldPosition();
+    //             }
+    //             if (joint->getName() == "head") {
+    //                 if (glm::abs(length(v->pos) - length(sphereTop)) < 0.001f) {
+    //                     v->anchored = true;
+    //                     break;
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    // }
+
+
+
+
 }
 
 

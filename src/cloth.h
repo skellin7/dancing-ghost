@@ -10,6 +10,7 @@ struct Vertex {
     float mass;
     bool anchored;
     glm::vec3 normal;
+    glm::vec2 uv; //texture
     glm::vec3 forces; //friction and normal
     float radius; //marble around each vertex
     std::vector<GLuint> neighbors; //neighboring vertices
