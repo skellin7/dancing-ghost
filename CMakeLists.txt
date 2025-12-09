@@ -40,6 +40,7 @@ add_executable(${PROJECT_NAME}
     src/cloth.cpp
     src/simulation.cpp
     src/joint.cpp
+    src/clothgeneration.cpp
 
     src/mainwindow.h
     src/realtime.h
@@ -56,7 +57,6 @@ add_executable(${PROJECT_NAME}
     src/camera/Camera.h
     src/cloth.h
     src/joint.h
-    src/clothgeneration.cpp
 )
 
 # GLM: this creates its library and allows you to `#include "glm/..."`

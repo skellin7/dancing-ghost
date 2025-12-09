@@ -9,6 +9,7 @@
 #include "src/cloth.h"
 
 #define PARAM 20
+#define ANIM_SPEED 5.f
 
 // ================== Rendering the Scene!
 
@@ -370,15 +371,42 @@ void Realtime::timerEvent(QTimerEvent *event) {
     }
 
     if (m_keyMap[Qt::Key_Left]) {
+        if (!m_startAnim) {
+            m_startAnim = true;
+            m_animType = AnimType::WALK_LEFT;
+            m_animTime = 0.f;
+            // m_animTime += 1.f;
+        }
         m_joints[0]->incLocalPosition(glm::vec3(-1.f * deltaTime, 0.f, 0.f));
-        for (Joint* j : m_joints) {
-            j->computeFK();
+    }
+    else {
+        if (m_startAnim) {
+            m_startAnim = false;
+            m_animType = AnimType::ANIM_NONE;
+            for (Joint* j : m_joints) {
+                j->update(fmod(m_animTime, j->getNumKeys(m_animType)), m_animType);
+            }
         }
     }
     if (m_keyMap[Qt::Key_Right]) {
         m_joints[0]->incLocalPosition(glm::vec3(1.f * deltaTime, 0.f, 0.f));
         for (Joint* j : m_joints) {
             j->computeFK();
+        }
+    }
+
+    if (m_startAnim) {
+        for (Joint* j : m_joints) {
+            j->update(fmod(m_animTime, j->getNumKeys(m_animType)), m_animType);
+        }
+        m_animTime += (deltaTime * ANIM_SPEED);
+    }
+
+    if (m_keyMap[Qt::Key_R]) {
+        for (Joint* j : m_joints) {
+            std::cout << j->getName() << ": " << std::endl;
+            // std::cout << glm::to_string(j->getBoneVec()) << std::endl;
+            std::cout << glm::to_string(j->getLocalRotation()) << std::endl;
         }
     }
 

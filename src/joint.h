@@ -1,17 +1,35 @@
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <string>
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/string_cast.hpp>
 #include <Eigen/Dense>
 
 enum BoneType {
     CYLINDER,
     SPHERE,
     NONE
+};
+
+enum AnimType {
+    ANIM_NONE,
+    WALK_LEFT
+};
+
+struct KeyFrame {
+    // glm::vec3 position;
+    glm::quat rotation;
+    float timestamp;
+};
+
+struct Animation {
+    std::vector<KeyFrame> keyframes;
+    int numKeys;
 };
 
 class Joint {
@@ -32,6 +50,15 @@ public:
 
     inline void multLocalRotation(glm::quat mult) { m_localRotation = glm::normalize(mult * m_localRotation); }
     inline void incLocalPosition(glm::vec3 inc) { m_localPosition += inc; }
+
+    inline glm::vec3 getLocalPosition() { return m_localPosition; }
+    inline glm::quat getLocalRotation() { return m_localRotation; }
+    inline int getNumKeys(int anim) { return m_animations[anim].numKeys; }
+
+    void addAnimation(std::vector<KeyFrame> keyframes, int numKeys);
+
+    void update(float time, int anim);
+    int getKeyIndex(float time, int anim);
 
     glm::vec3 getBoneVec();
 
@@ -59,4 +86,11 @@ private:
     BoneType m_boneType;
 
     bool m_endJoint;
+
+    // std::vector<KeyFrame> m_keyframes;
+    // int m_numKeys; // 1 less than number of keyframes, since last keyframe must be duplicate of first
+
+    std::vector<Animation> m_animations;
+
+    float getScaleFactor(float lastTimeStamp, float nextTimeStamp, float time);
 };

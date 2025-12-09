@@ -78,11 +78,12 @@ private:
 
     RenderData m_renderData;
 
-    Sphere* m_sphere;
-    GLuint m_sphere_vbo, m_sphere_vao;
+    // Sphere* m_sphere;
+    // GLuint m_sphere_vbo, m_sphere_vao;
 
     Camera* m_camera;
 
+    // Animation
     GLuint m_lineVAO, m_lineVBO;
     GLuint m_circleVAO, m_circleVBO;
 
@@ -94,6 +95,10 @@ private:
     std::string m_activeJoint;
 
     std::vector<Joint*> m_joints;
+
+    int m_animType = AnimType::ANIM_NONE;
+    bool m_startAnim = false;
+    float m_animTime = 0.f;
 
     //Cloth
     Cloth* m_cloth;

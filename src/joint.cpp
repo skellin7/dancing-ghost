@@ -8,6 +8,49 @@ Joint::Joint(std::string name, Joint* parent, glm::vec3 localPosition, glm::quat
     computeFK();
 }
 
+void Joint::update(float time, int anim) {
+    if (m_animations[anim].numKeys == 1) {
+        // m_localPosition = m_keyframes[0].position;
+        m_localRotation = m_animations[anim].keyframes[0].rotation;
+    }
+    else {
+        int p0 = getKeyIndex(time, anim);
+        int p1 = p0 + 1;
+        float scaleFactor = getScaleFactor(m_animations[anim].keyframes[p0].timestamp,
+                                           m_animations[anim].keyframes[p1].timestamp,
+                                           time);
+        // glm::vec3 finalPosition = glm::mix(m_keyframes[p0].position,
+        //                                    m_keyframes[p1].position,
+        //                                    scaleFactor);
+        // m_localPosition = finalPosition;
+
+        glm::quat finalRotation = glm::slerp(m_animations[anim].keyframes[p0].rotation,
+                                             m_animations[anim].keyframes[p1].rotation,
+                                             scaleFactor);
+        m_localRotation = finalRotation;
+    }
+
+    this->computeFK();
+}
+
+// gets current key from current time in animation
+int Joint::getKeyIndex(float time, int anim) {
+    for (int index = 0; index < m_animations[anim].numKeys; index++)
+    {
+        if (time < m_animations[anim].keyframes[index + 1].timestamp)
+            return index;
+    }
+    assert(0);
+}
+
+float Joint::getScaleFactor(float lastTimestamp, float nextTimestamp, float time) {
+    float scaleFactor = 0.0f;
+    float midWayLength = time - lastTimestamp;
+    float framesDiff = nextTimestamp - lastTimestamp;
+    scaleFactor = midWayLength / framesDiff;
+    return scaleFactor;
+}
+
 glm::vec3 Joint::getBoneVec() {
     return m_localPosition;
 }
@@ -53,6 +96,7 @@ void Joint::solveIK(Joint* endJoint, glm::vec3 ikTarget) {
         ikTarget = chainLen * glm::normalize(ikTarget);
     }
     ikTarget += glm::vec3(chain.front()->getWorldPosition());
+    // std::cout << glm::to_string(ikTarget) << std::endl;
 
     for (int it = 0; it < ITER; it++) {
         for (Joint* j : chain) {
@@ -127,74 +171,184 @@ void Joint::solveIK(Joint* endJoint, glm::vec3 ikTarget) {
     }
 }
 
+void Joint::addAnimation(std::vector<KeyFrame> keyframes, int numKeys) {
+    m_animations.push_back({keyframes, numKeys});
+}
+
 std::vector<Joint*> Joint::setupSkeleton() {
-    Joint *chest = new Joint("chest", nullptr,
+    std::vector<KeyFrame> defaultkf;
+    defaultkf.push_back({glm::quat(1.f, 0.f, 0.f, 0.f), 0.f});
+
+    Joint *chest = new Joint{"chest", nullptr,
                              glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
-                             false, false, false, false, BoneType::NONE);
+                             false, false, false, false, BoneType::NONE};
+    chest->addAnimation(defaultkf, 1);
+    chest->addAnimation(defaultkf, 1);
+    chest->addAnimation(defaultkf, 1);
 
     Joint *rightShoulder = new Joint{"rightShoulder", chest,
                                      glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                      false, false, true, false, BoneType::NONE};
+    rightShoulder->addAnimation(defaultkf, 1);
+    std::vector<KeyFrame> rshoulderkf;
+    rshoulderkf.push_back({glm::quat(0.995f, 0.f, 0.f, -0.101f), 0.f});
+    rshoulderkf.push_back({glm::quat(1.f, 0.f, 0.f, 0.006f), 1.f});
+    rshoulderkf.push_back({glm::quat(0.968f, 0.f, 0.f, -0.251f), 2.f});
+    rshoulderkf.push_back({glm::quat(0.947f, 0.f, 0.f, -0.320f), 3.f});
+    rshoulderkf.push_back({glm::quat(0.996f, 0.f, 0.f, -0.085f), 4.f});
+    rshoulderkf.push_back({glm::quat(0.995f, 0.f, 0.f, -0.101f), 5.f});
+    rightShoulder->addAnimation(rshoulderkf, 5);
 
     Joint *rightElbow = new Joint{"rightElbow", rightShoulder,
                                   glm::vec3(0.5f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                   false, false, true, false, BoneType::CYLINDER};
+    rightElbow->addAnimation(defaultkf, 1);
+    std::vector<KeyFrame> relbowkf;
+    relbowkf.push_back({glm::quat(0.990f, 0.f, 0.f, -0.141f), 0.f});
+    relbowkf.push_back({glm::quat(0.908f, 0.f, 0.f, -0.419f), 1.f});
+    relbowkf.push_back({glm::quat(-0.932f, 0.f, 0.f, -0.363f), 2.f});
+    relbowkf.push_back({glm::quat(-0.902f, 0.f, 0.f, -0.432f), 3.f});
+    relbowkf.push_back({glm::quat(-0.972f, 0.f, 0.f, -0.233f), 4.f});
+    relbowkf.push_back({glm::quat(0.990f, 0.f, 0.f, -0.141f), 5.f});
+    rightElbow->addAnimation(relbowkf, 5);
 
     Joint *rightWrist = new Joint{"rightWrist", rightElbow,
                                   glm::vec3(0.5f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                   false, false, true, true, BoneType::CYLINDER};
+    rightWrist->addAnimation(defaultkf, 1);
+    rightWrist->addAnimation(defaultkf, 1);
+    rightWrist->addAnimation(defaultkf, 1);
 
     Joint *leftShoulder = new Joint{"leftShoulder", chest,
                                     glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                     false, false, true, false, BoneType::NONE};
+    leftShoulder->addAnimation(defaultkf, 1);
+    std::vector<KeyFrame> lshoulderkf;
+    lshoulderkf.push_back({glm::quat(0.194f, 0.f, 0.f, 0.981f), 0.f});
+    lshoulderkf.push_back({glm::quat(0.349f, 0.f, 0.f, 0.937f), 1.f});
+    lshoulderkf.push_back({glm::quat(0.092f, 0.f, 0.f, 0.996f), 2.f});
+    lshoulderkf.push_back({glm::quat(0.101f, 0.f, 0.f, -0.995f), 3.f});
+    lshoulderkf.push_back({glm::quat(-0.034f, 0.f, 0.f, -0.999f), 4.f});
+    lshoulderkf.push_back({glm::quat(0.194f, 0.f, 0.f, 0.981f), 5.f});
+    leftShoulder->addAnimation(lshoulderkf, 5);
 
     Joint *leftElbow = new Joint{"leftElbow", leftShoulder,
                                  glm::vec3(-0.5f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                  false, false, true, false, BoneType::CYLINDER};
+    leftElbow->addAnimation(defaultkf, 1);
+    std::vector<KeyFrame> lelbowkf;
+    lelbowkf.push_back({glm::quat(0.987f, 0.f, 0.f, 0.163f), 0.f});
+    lelbowkf.push_back({glm::quat(0.878f, 0.f, 0.f, 0.478f), 1.f});
+    lelbowkf.push_back({glm::quat(0.994f, 0.f, 0.f, 0.111f), 2.f});
+    lelbowkf.push_back({glm::quat(-0.970f, 0.f, 0.f, 0.241f), 3.f});
+    lelbowkf.push_back({glm::quat(-0.988f, 0.f, 0.f, 0.152f), 4.f});
+    lelbowkf.push_back({glm::quat(0.987f, 0.f, 0.f, 0.163f), 5.f});
+    leftElbow->addAnimation(lelbowkf, 5);
 
     Joint *leftWrist = new Joint{"leftWrist", leftElbow,
                                  glm::vec3(-0.5f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                  false, false, true, true, BoneType::CYLINDER};
+    leftWrist->addAnimation(defaultkf, 1);
+    leftWrist->addAnimation(defaultkf, 1);
+    leftWrist->addAnimation(defaultkf, 1);
 
     Joint *hip = new Joint{"hip", chest,
                            glm::vec3(0.f, -0.5f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                            false, false, false, false, BoneType::CYLINDER};
+    hip->addAnimation(defaultkf, 1);
+    hip->addAnimation(defaultkf, 1);
+    hip->addAnimation(defaultkf, 1);
 
     Joint *rightHip = new Joint{"rightHip", hip,
                                 glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                 false, false, true, false, BoneType::NONE};
+    rightHip->addAnimation(defaultkf, 1);
+    std::vector<KeyFrame> rhipkf;
+    rhipkf.push_back({glm::quat(-0.998f, 0.f, 0.f, 0.065f), 0.f});
+    rhipkf.push_back({glm::quat(-0.999f, 0.f, 0.f, 0.013f), 1.f});
+    rhipkf.push_back({glm::quat(-0.896f, 0.f, 0.f, 0.444f), 2.f});
+    rhipkf.push_back({glm::quat(-0.935f, 0.f, 0.f, 0.356f), 3.f});
+    rhipkf.push_back({glm::quat(-0.955f, 0.f, 0.f, 0.296f), 4.f});
+    rhipkf.push_back({glm::quat(-0.995f, 0.f, 0.f, 0.098f), 5.f});
+    rhipkf.push_back({glm::quat(-0.998f, 0.f, 0.f, 0.065f), 6.f});
+    rightHip->addAnimation(rhipkf, 6);
 
     Joint *rightKnee = new Joint{"rightKnee", rightHip,
                                  glm::vec3(0.25f, -0.375f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                  false, false, true, false, BoneType::CYLINDER};
+    rightKnee->addAnimation(defaultkf, 1);
+    std::vector<KeyFrame> rkneekf;
+    rkneekf.push_back({glm::quat(-0.987f, 0.f, 0.f, 0.159f), 0.f});
+    rkneekf.push_back({glm::quat(-0.626f, 0.f, 0.f, 0.780f), 1.f});
+    rkneekf.push_back({glm::quat(-0.957f, 0.f, 0.f, 0.290f), 2.f});
+    rkneekf.push_back({glm::quat(-0.996f, 0.f, 0.f, 0.093f), 3.f});
+    rkneekf.push_back({glm::quat(-0.993f, 0.f, 0.f, 0.119f), 4.f});
+    rkneekf.push_back({glm::quat(-0.994f, 0.f, 0.f, 0.109f), 5.f});
+    rkneekf.push_back({glm::quat(-0.987f, 0.f, 0.f, 0.159f), 6.f});
+    rightKnee->addAnimation(rkneekf, 6);
 
     Joint *rightAnkle = new Joint{"rightAnkle", rightKnee,
                                  glm::vec3(0.25f, -0.375f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                  false, false, true, true, BoneType::CYLINDER};
+    rightAnkle->addAnimation(defaultkf, 1);
+    rightAnkle->addAnimation(defaultkf, 1);
+    rightAnkle->addAnimation(defaultkf, 1);
 
     Joint *leftHip = new Joint{"leftHip", hip,
                                glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                false, false, true, false, BoneType::NONE};
+    leftHip->addAnimation(defaultkf, 1);
+    std::vector<KeyFrame> lhipkf;
+    lhipkf.push_back({glm::quat(-0.965f, 0.f, 0.f, -0.261f), 0.f});
+    lhipkf.push_back({glm::quat(-0.955f, 0.f, 0.f, -0.296f), 1.f});
+    lhipkf.push_back({glm::quat(-0.913f, 0.f, 0.f, -0.408f), 2.f});
+    lhipkf.push_back({glm::quat(-0.913f, 0.f, 0.f, -0.408f), 3.f});
+    lhipkf.push_back({glm::quat(-0.897f, 0.f, 0.f, -0.442f), 4.f});
+    lhipkf.push_back({glm::quat(-0.988f, 0.f, 0.f, -0.157f), 5.f});
+    lhipkf.push_back({glm::quat(-0.965f, 0.f, 0.f, -0.261f), 6.f});
+    leftHip->addAnimation(lhipkf, 6);
 
     Joint *leftKnee = new Joint{"leftKnee", leftHip,
                                  glm::vec3(-0.25f, -0.375f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                  false, false, true, false, BoneType::CYLINDER};
+    leftKnee->addAnimation(defaultkf, 1);
+    std::vector<KeyFrame> lkneekf;
+    lkneekf.push_back({glm::quat(-0.985f, 0.f, 0.f, 0.172f), 0.f});
+    lkneekf.push_back({glm::quat(-0.992f, 0.f, 0.f, 0.130f), 1.f});
+    lkneekf.push_back({glm::quat(-0.996f, 0.f, 0.f, 0.086f), 2.f});
+    lkneekf.push_back({glm::quat(-0.996f, 0.f, 0.f, 0.086f), 3.f});
+    lkneekf.push_back({glm::quat(-0.646f, 0.f, 0.f, 0.763f), 4.f});
+    lkneekf.push_back({glm::quat(-0.983f, 0.f, 0.f, 0.182f), 5.f});
+    lkneekf.push_back({glm::quat(-0.985f, 0.f, 0.f, 0.172f), 6.f});
+    leftKnee->addAnimation(lkneekf, 6);
 
     Joint *leftAnkle = new Joint{"leftAnkle", leftKnee,
                                  glm::vec3(-0.25f, -0.375f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                                  false, false, true, true, BoneType::CYLINDER};
+    leftAnkle->addAnimation(defaultkf, 1);
+    leftAnkle->addAnimation(defaultkf, 1);
+    leftAnkle->addAnimation(defaultkf, 1);
 
     Joint *collar = new Joint{"collar", chest,
                               glm::vec3(0.f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                               false, false, false, false, BoneType::NONE};
+    collar->addAnimation(defaultkf, 1);
+    collar->addAnimation(defaultkf, 1);
+    collar->addAnimation(defaultkf, 1);
 
     Joint *neck = new Joint{"neck", collar,
                             glm::vec3(0.f, 0.25f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                             false, false, false, false, BoneType::CYLINDER};
+    neck->addAnimation(defaultkf, 1);
+    neck->addAnimation(defaultkf, 1);
+    neck->addAnimation(defaultkf, 1);
 
     Joint *head = new Joint{"head", neck,
                             glm::vec3(0.f, 0.2f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
                             false, false, false, false, BoneType::SPHERE};
+    head->addAnimation(defaultkf, 1);
+    head->addAnimation(defaultkf, 1);
+    head->addAnimation(defaultkf, 1);
 
     return {chest, rightShoulder, rightElbow, rightWrist, leftShoulder, leftElbow, leftWrist,
                 hip, rightHip, rightKnee, rightAnkle, leftHip, leftKnee, leftAnkle, collar, neck, head};
