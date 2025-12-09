@@ -428,6 +428,11 @@ void Realtime::timerEvent(QTimerEvent *event) {
             // m_animTime += 1.f;
         }
         m_joints[0]->incLocalPosition(glm::vec3(-1.f * deltaTime, 0.f, 0.f));
+
+        for (Joint* j : m_joints) {
+            j->update(fmod(m_animTime, j->getNumKeys(m_animType)), m_animType);
+        }
+        m_animTime += (deltaTime * ANIM_SPEED);
     }
     else {
         if (m_startAnim) {
@@ -443,13 +448,6 @@ void Realtime::timerEvent(QTimerEvent *event) {
         for (Joint* j : m_joints) {
             j->computeFK();
         }
-    }
-
-    if (m_startAnim) {
-        for (Joint* j : m_joints) {
-            j->update(fmod(m_animTime, j->getNumKeys(m_animType)), m_animType);
-        }
-        m_animTime += (deltaTime * ANIM_SPEED);
     }
 
     if (m_keyMap[Qt::Key_R]) {
