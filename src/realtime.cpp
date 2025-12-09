@@ -38,6 +38,7 @@ void Realtime::finish() {
     glDeleteProgram(m_shader);
     glDeleteProgram(m_cloth_normals_shader);
     glDeleteProgram(m_cloth_vertices_shader);
+    glDeleteProgram(m_cloth_texture_shader);
 
     glDeleteVertexArrays(1, &m_lineVAO);
     glDeleteVertexArrays(1, &m_circleVAO);
@@ -86,9 +87,22 @@ void Realtime::initializeGL() {
     m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
     m_cloth_normals_shader = ShaderLoader::createShaderProgram(":/resources/shaders/cloth_normals.vert", ":/resources/shaders/cloth_normals.frag");
     m_cloth_vertices_shader = ShaderLoader::createShaderProgram(":/resources/shaders/cloth_vertices.vert", ":/resources/shaders/cloth_vertices.frag");
+    m_cloth_texture_shader = ShaderLoader::createShaderProgram(":/resources/shaders/cloth_texture.vert", ":/resources/shaders/cloth_texture.frag");
 
     //create cloth
     m_cloth = new Cloth(settings.cloth_width, settings.cloth_length, settings.cloth_width_step, settings.cloth_length_step, 0.0f, glm::vec3(settings.x_clothBottomLeft, settings.y_clothBottomLeft, settings.z_clothBottomLeft));
+
+    // cloth texture
+    QString cloth_filepath = QString(":/resources/images/plaid.png");
+    m_image = QImage(cloth_filepath);
+    m_image = m_image.convertToFormat(QImage::Format_RGBA8888).mirrored();
+    glGenTextures(1, &m_cloth_texture);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_cloth_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_image.width(), m_image.height(), 0, GL_RGBA, GL_UNSIGNED_BYTE, m_image.bits());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(0, m_cloth_texture);
 
     float aspect = (float)size().width() / size().height();
     m_VP = glm::ortho(-3.f*aspect, 3.f*aspect, -3.f, 3.f, -10.f, 10.f);
@@ -203,21 +217,57 @@ void Realtime::paintGL() {
     }
 
     else {
-        glUseProgram(m_cloth_normals_shader);
+        // glUseProgram(m_cloth_normals_shader);
 
-        glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "viewMatrix"), 1, GL_FALSE, &m_camera->getViewMatrix()[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "projMatrix"), 1, GL_FALSE, &m_camera->getProjMatrix()[0][0]);
+        // glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "viewMatrix"), 1, GL_FALSE, &m_camera->getViewMatrix()[0][0]);
+        // glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "projMatrix"), 1, GL_FALSE, &m_camera->getProjMatrix()[0][0]);
+
+        // glBindVertexArray(m_cloth_vao);
+
+        // glm::mat4 identityMatrix = glm::mat4(glm::vec4(1.f, 0.f, 0.f, 0.f), glm::vec4(0.f, 1.f, 0.f, 0.f), glm::vec4(0.f, 0.f, 1.f, 0.f), glm::vec4(0.f, 0.f, 0.f, 1.f));
+        // glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
+        // glm::mat4 inverseCTM = glm::inverse(identityMatrix); //same thing
+        // glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
+
+        // glDrawElements(GL_TRIANGLES, m_cloth->m_triangleIndices.size(), GL_UNSIGNED_INT, 0);
+
+        // glBindVertexArray(0);
+
+
+
+        //texture
+        glUseProgram(m_cloth_texture_shader);
+
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_cloth_texture);
+
+
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_texture_shader, "viewMatrix"), 1, GL_FALSE, &m_camera->getViewMatrix()[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_texture_shader, "projMatrix"), 1, GL_FALSE, &m_camera->getProjMatrix()[0][0]);
+        glUniform1i(glGetUniformLocation(m_cloth_texture_shader, "my_texture"), 0);
+
+        glUniform3fv(glGetUniformLocation(m_cloth_texture_shader, "bottomLeft"), 1, &m_cloth->bottomLeftPos[0]);
+        glUniform1f(glGetUniformLocation(m_cloth_texture_shader, "clothWidth"), m_cloth->width);
+        glUniform1f(glGetUniformLocation(m_cloth_texture_shader, "clothDepth"), m_cloth->depth);
+
 
         glBindVertexArray(m_cloth_vao);
 
         glm::mat4 identityMatrix = glm::mat4(glm::vec4(1.f, 0.f, 0.f, 0.f), glm::vec4(0.f, 1.f, 0.f, 0.f), glm::vec4(0.f, 0.f, 1.f, 0.f), glm::vec4(0.f, 0.f, 0.f, 1.f));
-        glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_texture_shader, "modelMatrix"), 1, GL_FALSE, &identityMatrix[0][0]);
         glm::mat4 inverseCTM = glm::inverse(identityMatrix); //same thing
-        glUniformMatrix4fv(glGetUniformLocation(m_cloth_normals_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(m_cloth_texture_shader, "inverseModelMatrix"), 1, GL_FALSE, &inverseCTM[0][0]);
 
         glDrawElements(GL_TRIANGLES, m_cloth->m_triangleIndices.size(), GL_UNSIGNED_INT, 0);
 
+
+
         glBindVertexArray(0);
+
+        glBindTexture(0, m_cloth_texture);
+
+
     }
 
 

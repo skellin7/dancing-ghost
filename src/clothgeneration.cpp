@@ -91,6 +91,8 @@ void Realtime::clothvbovaoGeneration() {
             verticePositions.push_back(vertex.normal.x);
             verticePositions.push_back(vertex.normal.y);
             verticePositions.push_back(vertex.normal.z);
+            verticePositions.push_back(vertex.uv.x);
+            verticePositions.push_back(vertex.uv.y);
         }
 
         glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * verticePositions.size(), verticePositions.data(), GL_STATIC_DRAW);
@@ -99,10 +101,13 @@ void Realtime::clothvbovaoGeneration() {
         glBindVertexArray(m_cloth_vao);
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), reinterpret_cast<void*>(0));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), reinterpret_cast<void*>(0));
 
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), reinterpret_cast<void*>(3*sizeof(GLfloat)));
+
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(GLfloat), reinterpret_cast<void*>(6*sizeof(GLfloat)));
 
         glGenBuffers(1, &m_cloth_ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_cloth_ebo);

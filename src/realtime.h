@@ -59,6 +59,10 @@ private:
     void constrainSprings(int iterations);
     glm::vec3 friction(glm::vec3 velocity, glm::vec3 normal);
 
+    //Cloth Texture
+    QImage m_image;
+    GLuint m_cloth_texture;
+
     // Animation Methods
     void setupSkeleton();
 
@@ -109,5 +113,6 @@ private:
     GLuint m_cloth_ebo;
     GLuint m_cloth_normals_shader;
     GLuint m_cloth_vertices_shader;
+    GLuint m_cloth_texture_shader;
 
 };

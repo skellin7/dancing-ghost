@@ -90,6 +90,10 @@ qt6_add_resources(${PROJECT_NAME} "Resources"
         resources/shaders/cloth_vertices.vert
         resources/shaders/cloth_normals.frag
         resources/shaders/cloth_normals.vert
+        resources/shaders/cloth_texture.frag
+        resources/shaders/cloth_texture.vert
+        resources/images/cloth.png
+        resources/images/plaid.png
 )
 
 # GLEW: this provides support for Windows (including 64-bit)
