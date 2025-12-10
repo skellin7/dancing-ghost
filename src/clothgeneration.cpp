@@ -3,8 +3,8 @@
 
 void Realtime::clothvbovaoGeneration() {
 
-    if (settings.renderVertices) {
-        //cloth vertcies
+    if (settings.renderType == RenderType::vertices) {
+        //cloth vertices
         glGenBuffers(1, &m_cloth_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, m_cloth_vbo);
 
@@ -77,7 +77,8 @@ void Realtime::clothvbovaoGeneration() {
         glBindVertexArray(0);
     }
 
-    else {
+    else { //for rendering cloth with normals or texture
+
         glGenBuffers(1, &m_cloth_vbo);
         glBindBuffer(GL_ARRAY_BUFFER, m_cloth_vbo);
 

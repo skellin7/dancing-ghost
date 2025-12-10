@@ -4,6 +4,12 @@
 #include <string>
 #include <glm/glm.hpp>
 
+enum class RenderType {
+    vertices,
+    normals,
+    texture
+};
+
 struct Settings {
     std::string sceneFilePath;
     int shapeParameter1 = 25;
@@ -41,13 +47,15 @@ struct Settings {
     float mu_static = 0.5f; //static friction  0.5f;
     float mu_kinetic = 0.9f; //kinetic friction 0.3f
 
-    float clothToShapeCollisionCorrection; // for cloth to shape collisions
+    float clothToShapeCollisionCorrection = 0.500f; // for cloth to shape collisions
 
     //for cloth to cloth collisions
     float clothVertexRadius;
     float clothToClothCollisionCorrection = 0.001;
 
-    bool renderVertices = false; //false = render cloth as normals, true = render cloth as vertices
+    RenderType renderType = RenderType::normals;
+
+    bool generateCloth = false;
 
 };
 

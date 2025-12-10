@@ -1,10 +1,13 @@
 #include "cloth.h"
 #include "settings.h"
 #include <GL/glew.h>
+#include "iostream"
 
 
 Cloth::Cloth(float w, float d, float wStep, float dStep, float h, glm::vec3 bottomLeft)
     : width(w), depth(d), widthStep(wStep), depthStep(dStep), height(h), bottomLeftPos(bottomLeft) {
+
+    sphereTop = glm::vec3(0.f);
 
     m_triangleIndices = std::vector<GLuint>();
     createVertices();
@@ -24,22 +27,7 @@ void Cloth::createVertices() {
             glm::vec3 position = bottomLeftPos + glm::vec3(i * widthStep, height, j * depthStep);
             Vertex v;
 
-            //if (i == 0 && j <= .25* widthPoints || i == 0 && j >= .75* widthPoints) {
-            //if (i == 0 && j == 0 || i == 0 && j == depthPoints-1){
-
-
-            // if (i == 0 && j >= 0.15 * depthPoints && j <= 0.35 * depthPoints || i == 0 && j >= 0.85 * depthPoints && j <= 0.65 * depthPoints) {
-            //     v = {position, position, 1.0f, true, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.radius, {}};
-            // }
-
-            // if (i >= 0.15 * widthPoints && i <= 0.35 * widthPoints && j >= 0.15 * depthPoints && j <= 0.35 * depthPoints || i >= 0.85 * widthPoints && i <= 0.65 * widthPoints && j >= 0.85 * depthPoints && j <= 0.65 * depthPoints) {
-            //     v = {position, position, 1.0f, true, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}};
-            // }
-            // else {
-            //     v = {position, position, 1.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}};
-            // }
-
-            v = {position, position, 3.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec2(float(i) / float(widthPoints - 1), float(j) / float(depthPoints - 1)), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}}; //uncomment to unanchor all vertices
+            v = {position, position, 5.0f, false, glm::vec3(0.f,0.f,0.f), glm::vec2(float(i) / float(widthPoints - 1), float(j) / float(depthPoints - 1)), glm::vec3(0.f,0.f,0.f), settings.clothVertexRadius, {}}; //uncomment to unanchor all vertices
 
             m_vertices.push_back(v);
         }
@@ -54,7 +42,6 @@ void Cloth::createSprings() {
         for (int j = 0; j < depthPoints; j++) {
 
             int current = i * depthPoints + j;
-
 
             //each vertex has 4 structural springs
             //dont double count! only put right and top
@@ -111,26 +98,6 @@ void Cloth::createSprings() {
             }
         }
     }
-
-    //debugging
-    // int structural= 0;
-    // int shear = 0;
-    // int bend = 0;
-    // for (int i = 0; i < springs.size(); i ++) {
-    //     Spring * spring = & springs[i];
-
-    //     if (spring->type == SpringType::STRUCTURAL)
-    //         structural++;
-    //     if (spring->type == SpringType::SHEAR)
-    //         shear++;
-    //     if (spring->type == SpringType::BEND)
-    //         bend++;
-    // }
-    // std::cout << "num strucutral " << structural;
-    // std::cout << "num shear " << shear;
-    // std::cout << "num bend " << bend;
-
-    // std::cout << "total springs " << springs.size();
 }
 
 
@@ -183,5 +150,22 @@ void Cloth::setNormals() {
     for (auto &v : m_vertices) {
         v.normal = glm::normalize(v.normal);
     }
+}
+
+
+void Cloth::updateClothPos(glm::vec3 newSphereTop, bool left) {
+
+    glm::vec3 offset = glm::abs(sphereTop - newSphereTop);
+
+    for (auto &v : m_vertices) {
+        if (left) {
+            v.pos = v.pos - offset;
+        }
+        else {
+            v.pos = v.pos + offset;
+        }
+    }
+
+    sphereTop = newSphereTop;
 }
 

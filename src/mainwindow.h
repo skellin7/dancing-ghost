@@ -45,6 +45,9 @@ private:
 
     void connectRenderNormals();
     void connectRenderVertices();
+    void connectRenderTexture();
+
+    void connectGenerateCloth();
 
     void connectUploadFile();
     void connectSaveImage();
@@ -70,6 +73,9 @@ private:
 
     QRadioButton *renderNormals;
     QRadioButton *renderVertices;
+    QRadioButton *renderTexture;
+
+    QCheckBox *generateCloth;
 
     QSlider *xSlider;
     QSlider *ySlider;
@@ -124,6 +130,9 @@ private slots:
 
     void onRenderNormalsChange();
     void onRenderVerticesChange();
+    void onRenderTextureChange();
+
+    void onGenerateClothChange(bool checked);
 
     void onValChangexSlider(int newValue);
     void onValChangeySlider(int newValue);

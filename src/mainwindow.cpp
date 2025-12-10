@@ -62,12 +62,21 @@ void MainWindow::initialize() {
     QLabel *body_label = new QLabel();
     body_label->setText("Body length:");
 
+    generateCloth = new QCheckBox();
+    generateCloth->setText(QStringLiteral("generate cloth"));
+    generateCloth->setChecked(false);
+
     renderNormals = new QRadioButton();
-    renderNormals->setText(QStringLiteral("render as normals"));
-    renderNormals->setChecked(true);
+    renderNormals->setText(QStringLiteral("render with normals"));
+    renderNormals->setEnabled(false);
 
     renderVertices = new QRadioButton();
-    renderVertices->setText(QStringLiteral("render as vertices"));
+    renderVertices->setText(QStringLiteral("render with vertices"));
+    renderVertices->setEnabled(false);
+
+    renderTexture = new QRadioButton();
+    renderTexture->setText(QStringLiteral("render with cloth texture"));
+    renderTexture->setEnabled(false);
 
     QLabel *x_label = new QLabel(); // cloth bottom left x pos label
     x_label->setText("x pos:");
@@ -77,13 +86,13 @@ void MainWindow::initialize() {
     z_label->setText("z pos:");
 
     QLabel *structural_label = new QLabel(); // structural spring k constant
-    structural_label->setText("structural k:");
+    structural_label->setText("structural springs k constant:");
     QLabel *shear_label = new QLabel(); // shear spring k constant
-    shear_label->setText("shear k:");
+    shear_label->setText("shear springs k constant:");
     QLabel *bend_label = new QLabel(); // bend spring k constant
-    bend_label->setText("bend k:");
+    bend_label->setText("bend springs k constant:");
     QLabel *damping_label = new QLabel(); // damping constant
-    damping_label->setText("damping k:");
+    damping_label->setText("damping k constant:");
 
     QLabel *cloth_width_label = new QLabel(); // cloth width
     cloth_width_label->setText("cloth width:");
@@ -563,8 +572,11 @@ void MainWindow::initialize() {
     vLayout->addWidget(bodyLayout);
 
     vLayout->addWidget(cloth_label);
+    vLayout->addWidget(generateCloth);
     vLayout->addWidget(renderNormals);
     vLayout->addWidget(renderVertices);
+    vLayout->addWidget(renderTexture);
+
 
     vLayout->addWidget(x_label);
     vLayout->addWidget(xLayout);
@@ -680,6 +692,8 @@ void MainWindow::connectUIElements() {
     connectClothToClothCorrection();
     connectRenderNormals();
     connectRenderVertices();
+    connectRenderTexture();
+    connectGenerateCloth();
 }
 
 
@@ -916,7 +930,8 @@ void MainWindow::connectRenderNormals()
 
 void MainWindow::onRenderNormalsChange()
 {
-    settings.renderVertices = false;
+    if (!settings.generateCloth) return;
+    settings.renderType = RenderType::normals;
     realtime->settingsChanged();
 }
 
@@ -927,9 +942,52 @@ void MainWindow::connectRenderVertices()
 
 void MainWindow::onRenderVerticesChange()
 {
-    settings.renderVertices = true;
+    if (!settings.generateCloth) return;
+    settings.renderType = RenderType::vertices;
     realtime->settingsChanged();
 }
+
+void MainWindow::connectRenderTexture()
+{
+    connect(renderTexture, &QRadioButton::clicked, this, &MainWindow::onRenderTextureChange);
+}
+
+void MainWindow::onRenderTextureChange()
+{
+    if (!settings.generateCloth) return;
+    settings.renderType = RenderType::texture;
+    realtime->settingsChanged();
+}
+
+void MainWindow::connectGenerateCloth()
+{
+    connect(generateCloth, &QRadioButton::toggled, this, &MainWindow::onGenerateClothChange);
+}
+
+void MainWindow::onGenerateClothChange(bool checked)
+{
+    settings.generateCloth = checked;
+
+    if (!checked)
+    {
+        renderVertices->setChecked(false);
+        renderTexture->setChecked(false);
+        renderNormals->setChecked(false);
+
+        renderVertices->setEnabled(false);
+        renderTexture->setEnabled(false);
+        renderNormals->setEnabled(false);
+    }
+    else
+    {
+        renderVertices->setEnabled(true);
+        renderTexture->setEnabled(true);
+        renderNormals->setEnabled(true);
+    }
+
+    realtime->settingsChanged();
+}
+
 
 void MainWindow::onValChangexSlider(int newValue) {
     xBox->setValue(newValue/100.f);

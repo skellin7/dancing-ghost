@@ -1,7 +1,6 @@
 #include "src/realtime.h"
 #include "src/settings.h"
 #include "src/joint.h"
-#include "iostream"
 
 
 void Realtime::simulate(float deltaTime) {
@@ -14,49 +13,6 @@ void Realtime::simulate(float deltaTime) {
         solveCollisions(1, deltaTime);
 
     }
-
-    // for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
-    //     Vertex* v = &m_cloth->m_vertices[i];
-
-    //     if (v->anchored) {
-    //         for (Joint *joint : m_joints) {
-    //             glm::vec3 sphereTop(0.f);
-    //             if (joint->getName() == "head") {
-    //                 sphereTop = 2.f*joint->getWorldPosition() - joint->getParent()->getWorldPosition();
-    //             }
-    //             if (joint->getName() == "head") {
-    //                 if (glm::abs(length(v->pos) - length(sphereTop)) < 0.001f) {
-    //                     v->anchored = true;
-    //                     break;
-    //                 }
-    //                 else {
-    //                     v->anchored = false;
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     else {
-    //         for (Joint *joint : m_joints) {
-    //             glm::vec3 sphereTop(0.f);
-    //             if (joint->getName() == "head") {
-    //                 sphereTop = 2.f*joint->getWorldPosition() - joint->getParent()->getWorldPosition();
-    //             }
-    //             if (joint->getName() == "head") {
-    //                 if (glm::abs(length(v->pos) - length(sphereTop)) < 0.001f) {
-    //                     v->anchored = true;
-    //                     break;
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    // }
-
-
-
-
 }
 
 
@@ -132,8 +88,6 @@ void Realtime::verletIntegration(std::vector<glm::vec3> forces, float deltaTime)
 
 
 void Realtime::solveCollisions(int iterations, float deltaTime) {
-    // for (int iter = 0; iter < iterations; iter++) {
-
     for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
         Vertex* v = &m_cloth->m_vertices[i];
 
@@ -160,6 +114,9 @@ void Realtime::solveCollisions(int iterations, float deltaTime) {
                     glm::vec3 sphereTop(0.f);
                     if (joint->getName() == "head") {
                         sphereTop = 2.f*joint->getWorldPosition() - joint->getParent()->getWorldPosition();
+                        if (m_cloth->sphereTop == glm::vec3(0.f)) {
+                            m_cloth->sphereTop = sphereTop;
+                        }
                     }
 
                     //repulsion correction
@@ -259,17 +216,13 @@ void Realtime::solveCollisions(int iterations, float deltaTime) {
 
                 }
 
-
             }
         }
     }
-    //}
 }
 
 
 void::Realtime::solveClothToClothCollisions(int iterations, float deltaTime) {
-    //for (int iter = 0; iter < iterations; iter++) {
-
     for (int i = 0; i < m_cloth->m_vertices.size(); i++) {
 
         Vertex* v1 = &m_cloth->m_vertices[i];
@@ -303,12 +256,10 @@ void::Realtime::solveClothToClothCollisions(int iterations, float deltaTime) {
             }
         }
     }
-    //}
 }
 
 
 void Realtime::constrainSprings(int iterations) {
-    //for (int iter = 0; iter < iterations; iter++) {
     for (Spring& s : m_cloth->m_springs) {
 
         Vertex* v1 = &m_cloth->m_vertices[s.vertexOne];
@@ -340,7 +291,6 @@ void Realtime::constrainSprings(int iterations) {
             }
         }
     }
-    //}
 }
 
 
