@@ -41,6 +41,7 @@ public:
     float depthStep;
     float height;
     glm::vec3 bottomLeftPos;
+    glm::vec3 sphereTop;
     Cloth(float w, float d, float wStep, float dStep, float h, glm::vec3 bottomLeft);
 
     std::vector<Vertex> m_vertices;
@@ -48,6 +49,7 @@ public:
     std::vector<GLuint> m_triangleIndices;
 
     void setNormals();
+    void updateClothPos(glm::vec3 newSphereTop, bool left);
 
 
 private:
