@@ -35,7 +35,7 @@ void Realtime::finish() {
     this->makeCurrent();
 
     // Students: anything requiring OpenGL calls when the program exits should be done here
-    glDeleteProgram(m_shader);
+    glDeleteProgram(m_figure_shader);
     glDeleteProgram(m_cloth_normals_shader);
     glDeleteProgram(m_cloth_vertices_shader);
     glDeleteProgram(m_cloth_texture_shader);
@@ -54,9 +54,12 @@ void Realtime::finish() {
     glDeleteVertexArrays(1, &m_spring_vao);
 
     delete m_camera;
+
     for (Joint* j : m_joints) {
         delete j;
     }
+
+    if (m_cloth) delete m_cloth;
 
     this->doneCurrent();
 }
@@ -84,7 +87,7 @@ void Realtime::initializeGL() {
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
 
     // Students: anything requiring OpenGL calls when the program starts should be done here
-    m_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
+    m_figure_shader = ShaderLoader::createShaderProgram(":/resources/shaders/default.vert", ":/resources/shaders/default.frag");
     m_cloth_normals_shader = ShaderLoader::createShaderProgram(":/resources/shaders/cloth_normals.vert", ":/resources/shaders/cloth_normals.frag");
     m_cloth_vertices_shader = ShaderLoader::createShaderProgram(":/resources/shaders/cloth_vertices.vert", ":/resources/shaders/cloth_vertices.frag");
     m_cloth_texture_shader = ShaderLoader::createShaderProgram(":/resources/shaders/cloth_texture.vert", ":/resources/shaders/cloth_texture.frag");
@@ -125,6 +128,15 @@ void Realtime::initializeGL() {
 
     glBindVertexArray(m_circleVAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_circleVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (3 * PARAM), nullptr, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glGenVertexArrays(1, &m_arcVAO);
+    glGenBuffers(1, &m_arcVBO);
+
+    glBindVertexArray(m_arcVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_arcVBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * (3 * PARAM), nullptr, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
@@ -179,11 +191,23 @@ void Realtime::paintGL() {
     for (Joint* j : m_joints) {
         if (j->getBoneType() == BoneType::CYLINDER) {
             Joint::drawLine(j->getParent()->getWorldPosition(), j->getWorldPosition(),
-                     color, m_VP, m_shader, m_lineVAO, m_lineVBO);
+                     color, m_VP, m_figure_shader, m_lineVAO, m_lineVBO);
         }
         else if (j->getBoneType() == BoneType::SPHERE) {
-            Joint::drawCircle(j->getWorldPosition(), glm::length(j->getBoneVec()), PARAM,
-                       color, m_VP, m_shader, m_circleVAO, m_circleVBO);
+            glm::vec3 c = j->getWorldPosition();
+            float r = glm::length(j->getBoneVec());
+            Joint::drawCircle(c, r, PARAM,
+                       color, m_VP, m_figure_shader, m_circleVAO, m_circleVBO);
+
+            glm::vec3 leftEye = c + glm::vec3(-0.35f * r, 0.3f * r, 0.f);
+            glm::vec3 rightEye = c + glm::vec3( 0.35f * r, 0.3f * r, 0.f);
+            float eyeRadius = 0.1f * r;
+            Joint::drawCircle(leftEye, eyeRadius, PARAM, color, m_VP, m_figure_shader, m_circleVAO, m_circleVBO);
+            Joint::drawCircle(rightEye, eyeRadius, PARAM, color, m_VP, m_figure_shader, m_circleVAO, m_circleVBO);
+
+            glm::vec3 mouthCenter = c + glm::vec3(0.0f, -0.2f * r, 0.0f);
+            float mouthRadius = 0.5f * r;
+            Joint::drawArc(mouthCenter, mouthRadius, M_PI, 2*M_PI, PARAM, color, m_VP, m_figure_shader, m_arcVAO, m_arcVBO);
         }
     }
 
@@ -306,6 +330,21 @@ void Realtime::settingsChanged() {
     m_cloth = new Cloth(settings.cloth_width, settings.cloth_length, settings.cloth_width_step, settings.cloth_length_step, 0.0f, glm::vec3(settings.x_clothBottomLeft, settings.y_clothBottomLeft, settings.z_clothBottomLeft));
     clothvbovaoGeneration();
 
+    m_joints[16]->setLocalPosition(settings.headRadius);
+    m_joints[3]->setLocalPosition(settings.forearmLength);
+    m_joints[6]->setLocalPosition(settings.forearmLength);
+    m_joints[2]->setLocalPosition(settings.upperarmLength);
+    m_joints[5]->setLocalPosition(settings.upperarmLength);
+    m_joints[9]->setLocalPosition(settings.thighLength);
+    m_joints[12]->setLocalPosition(settings.thighLength);
+    m_joints[10]->setLocalPosition(settings.calfLength);
+    m_joints[13]->setLocalPosition(settings.calfLength);
+    m_joints[7]->setLocalPosition(settings.bodyLength);
+
+    for (Joint* j : m_joints) {
+        j->computeFK();
+    }
+
     update(); // asks for a PaintGL() call to occur
 }
 
@@ -355,16 +394,6 @@ void Realtime::mouseReleaseEvent(QMouseEvent *event) {
 
 void Realtime::mouseMoveEvent(QMouseEvent *event) {
     if (m_mouseDown) {
-        // int posX = event->position().x();
-        // int posY = event->position().y();
-        // int deltaX = posX - m_prev_mouse_pos.x;
-        // int deltaY = posY - m_prev_mouse_pos.y;
-        // m_prev_mouse_pos = glm::vec2(posX, posY);
-
-        // // Use deltaX and deltaY here to rotate
-        // m_camera->rotateX(0.005 * deltaX);
-        // m_camera->rotateY(0.005 * deltaY);
-
         float mx = event->position().x();
         float my = event->position().y();
 
@@ -425,7 +454,6 @@ void Realtime::timerEvent(QTimerEvent *event) {
             m_startAnim = true;
             m_animType = AnimType::WALK_LEFT;
             m_animTime = 0.f;
-            // m_animTime += 1.f;
         }
         m_joints[0]->incLocalPosition(glm::vec3(-1.f * deltaTime, 0.f, 0.f));
 
@@ -434,19 +462,25 @@ void Realtime::timerEvent(QTimerEvent *event) {
         }
         m_animTime += (deltaTime * ANIM_SPEED);
     }
+    else if (m_keyMap[Qt::Key_Right]) {
+        if (!m_startAnim) {
+            m_startAnim = true;
+            m_animType = AnimType::WALK_RIGHT;
+            m_animTime = 0.f;
+        }
+        m_joints[0]->incLocalPosition(glm::vec3(1.f * deltaTime, 0.f, 0.f));
+        for (Joint* j : m_joints) {
+            j->update(fmod(m_animTime, j->getNumKeys(m_animType)), m_animType);
+        }
+        m_animTime += (deltaTime * ANIM_SPEED / 2.f);
+    }
     else {
         if (m_startAnim) {
             m_startAnim = false;
             m_animType = AnimType::ANIM_NONE;
-            for (Joint* j : m_joints) {
-                j->update(fmod(m_animTime, j->getNumKeys(m_animType)), m_animType);
-            }
-        }
-    }
-    if (m_keyMap[Qt::Key_Right]) {
-        m_joints[0]->incLocalPosition(glm::vec3(1.f * deltaTime, 0.f, 0.f));
-        for (Joint* j : m_joints) {
-            j->computeFK();
+            // for (Joint* j : m_joints) {
+            //     j->update(fmod(m_animTime, j->getNumKeys(m_animType)), m_animType);
+            // }
         }
     }
 

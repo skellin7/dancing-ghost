@@ -78,18 +78,16 @@ private:
     // Device Correction Variables
     double m_devicePixelRatio;
 
-    GLuint m_shader; // Stores id of shader program
+    GLuint m_figure_shader; // Stores id of shader program
 
     RenderData m_renderData;
-
-    // Sphere* m_sphere;
-    // GLuint m_sphere_vbo, m_sphere_vao;
 
     Camera* m_camera;
 
     // Animation
     GLuint m_lineVAO, m_lineVBO;
     GLuint m_circleVAO, m_circleVBO;
+    GLuint m_arcVAO, m_arcVBO;
 
     glm::mat4 m_VP;
 

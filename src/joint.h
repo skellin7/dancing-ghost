@@ -18,7 +18,8 @@ enum BoneType {
 
 enum AnimType {
     ANIM_NONE,
-    WALK_LEFT
+    WALK_LEFT,
+    WALK_RIGHT
 };
 
 struct KeyFrame {
@@ -51,7 +52,8 @@ public:
     inline void multLocalRotation(glm::quat mult) { m_localRotation = glm::normalize(mult * m_localRotation); }
     inline void incLocalPosition(glm::vec3 inc) { m_localPosition += inc; }
 
-    inline glm::vec3 getLocalPosition() { return m_localPosition; }
+    inline void setLocalPosition(float length) { m_localPosition = length * glm::normalize(m_localPosition); }
+
     inline glm::quat getLocalRotation() { return m_localRotation; }
     inline int getNumKeys(int anim) { return m_animations[anim].numKeys; }
 
@@ -70,6 +72,9 @@ public:
                          GLuint shader, GLuint lineVAO, GLuint lineVBO);
     static void drawCircle(glm::vec3 c, float r, int param, glm::vec3 color,
                            glm::mat4 VP, GLuint shader, GLuint vao, GLuint vbo);
+    static void drawArc(glm::vec3 c, float r, float a0, float a1,
+                        int param, glm::vec3 color, glm::mat4 VP,
+                        GLuint shader, GLuint vao, GLuint vbo);
 
 private:
     std::string m_name;

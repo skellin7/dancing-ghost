@@ -198,6 +198,13 @@ std::vector<Joint*> Joint::setupSkeleton() {
     rshoulderkf.push_back({glm::quat(0.996f, 0.f, 0.f, -0.085f), 4.f});
     rshoulderkf.push_back({glm::quat(0.995f, 0.f, 0.f, -0.101f), 5.f});
     rightShoulder->addAnimation(rshoulderkf, 5);
+    rshoulderkf.clear();
+    rshoulderkf.push_back({glm::quat(0.969f, 0.f, 0.f, 0.246f), 0.f});
+    rshoulderkf.push_back({glm::quat(-0.927f, 0.f, 0.f, 0.374f), 1.f});
+    rshoulderkf.push_back({glm::quat(0.890f, 0.f, 0.f, -0.455f), 2.f});
+    rshoulderkf.push_back({glm::quat(-0.927f, 0.f, 0.f, 0.374f), 3.f});
+    rshoulderkf.push_back({glm::quat(0.969f, 0.f, 0.f, 0.246f), 4.f});
+    rightShoulder->addAnimation(rshoulderkf, 4);
 
     Joint *rightElbow = new Joint{"rightElbow", rightShoulder,
                                   glm::vec3(0.5f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
@@ -211,6 +218,13 @@ std::vector<Joint*> Joint::setupSkeleton() {
     relbowkf.push_back({glm::quat(-0.972f, 0.f, 0.f, -0.233f), 4.f});
     relbowkf.push_back({glm::quat(0.990f, 0.f, 0.f, -0.141f), 5.f});
     rightElbow->addAnimation(relbowkf, 5);
+    relbowkf.clear();
+    relbowkf.push_back({glm::quat(-0.987f, 0.f, 0.f, -0.162f), 0.f});
+    relbowkf.push_back({glm::quat(-0.108f, 0.f, 0.f, -0.994f), 1.f});
+    relbowkf.push_back({glm::quat(0.647f, 0.f, 0.f, -0.762f), 2.f});
+    relbowkf.push_back({glm::quat(-0.108f, 0.f, 0.f, -0.994f), 3.f});
+    relbowkf.push_back({glm::quat(-0.987f, 0.f, 0.f, -0.162f), 4.f});
+    rightElbow->addAnimation(relbowkf, 4);
 
     Joint *rightWrist = new Joint{"rightWrist", rightElbow,
                                   glm::vec3(0.5f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
@@ -231,6 +245,9 @@ std::vector<Joint*> Joint::setupSkeleton() {
     lshoulderkf.push_back({glm::quat(-0.034f, 0.f, 0.f, -0.999f), 4.f});
     lshoulderkf.push_back({glm::quat(0.194f, 0.f, 0.f, 0.981f), 5.f});
     leftShoulder->addAnimation(lshoulderkf, 5);
+    lshoulderkf.clear();
+    lshoulderkf.push_back({glm::quat(0.977f, 0.f, 0.f, 0.213f), 0.f});
+    leftShoulder->addAnimation(lshoulderkf, 1);
 
     Joint *leftElbow = new Joint{"leftElbow", leftShoulder,
                                  glm::vec3(-0.5f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
@@ -244,6 +261,9 @@ std::vector<Joint*> Joint::setupSkeleton() {
     lelbowkf.push_back({glm::quat(-0.988f, 0.f, 0.f, 0.152f), 4.f});
     lelbowkf.push_back({glm::quat(0.987f, 0.f, 0.f, 0.163f), 5.f});
     leftElbow->addAnimation(lelbowkf, 5);
+    lelbowkf.clear();
+    lelbowkf.push_back({glm::quat(0.475f, 0.f, 0.f, 0.880f), 0.f});
+    leftElbow->addAnimation(lelbowkf, 1);
 
     Joint *leftWrist = new Joint{"leftWrist", leftElbow,
                                  glm::vec3(-0.5f, 0.f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
@@ -272,6 +292,13 @@ std::vector<Joint*> Joint::setupSkeleton() {
     rhipkf.push_back({glm::quat(-0.995f, 0.f, 0.f, 0.098f), 5.f});
     rhipkf.push_back({glm::quat(-0.998f, 0.f, 0.f, 0.065f), 6.f});
     rightHip->addAnimation(rhipkf, 6);
+    rhipkf.clear();
+    rhipkf.push_back({glm::quat(0.999f, 0.f, 0.f, -0.033f), 0.f});
+    rhipkf.push_back({glm::quat(0.959f, 0.f, 0.f, -0.282f), 1.f});
+    rhipkf.push_back({glm::quat(0.999f, 0.f, 0.f, -0.033f), 2.f});
+    rhipkf.push_back({glm::quat(0.960f, 0.f, 0.f, 0.280f), 3.f});
+    rhipkf.push_back({glm::quat(0.999f, 0.f, 0.f, -0.033f), 4.f});
+    rightHip->addAnimation(rhipkf, 4);
 
     Joint *rightKnee = new Joint{"rightKnee", rightHip,
                                  glm::vec3(0.25f, -0.375f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
@@ -286,6 +313,13 @@ std::vector<Joint*> Joint::setupSkeleton() {
     rkneekf.push_back({glm::quat(-0.994f, 0.f, 0.f, 0.109f), 5.f});
     rkneekf.push_back({glm::quat(-0.987f, 0.f, 0.f, 0.159f), 6.f});
     rightKnee->addAnimation(rkneekf, 6);
+    rkneekf.clear();
+    rkneekf.push_back({glm::quat(0.994f, 0.f, 0.f, -0.112f), 0.f});
+    rkneekf.push_back({glm::quat(0.976f, 0.f, 0.f, -0.217f), 1.f});
+    rkneekf.push_back({glm::quat(0.994f, 0.f, 0.f, -0.112f), 2.f});
+    rkneekf.push_back({glm::quat(0.984f, 0.f, 0.f, -0.177f), 3.f});
+    rkneekf.push_back({glm::quat(0.994f, 0.f, 0.f, -0.112f), 4.f});
+    rightKnee->addAnimation(rkneekf, 4);
 
     Joint *rightAnkle = new Joint{"rightAnkle", rightKnee,
                                  glm::vec3(0.25f, -0.375f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
@@ -307,6 +341,13 @@ std::vector<Joint*> Joint::setupSkeleton() {
     lhipkf.push_back({glm::quat(-0.988f, 0.f, 0.f, -0.157f), 5.f});
     lhipkf.push_back({glm::quat(-0.965f, 0.f, 0.f, -0.261f), 6.f});
     leftHip->addAnimation(lhipkf, 6);
+    lhipkf.clear();
+    lhipkf.push_back({glm::quat(0.999f, 0.f, 0.f, 0.037f), 0.f});
+    lhipkf.push_back({glm::quat(0.959f, 0.f, 0.f, 0.284f), 1.f});
+    lhipkf.push_back({glm::quat(0.999f, 0.f, 0.f, 0.037f), 2.f});
+    lhipkf.push_back({glm::quat(0.771f, 0.f, 0.f, 0.637f), 3.f});
+    lhipkf.push_back({glm::quat(0.999f, 0.f, 0.f, 0.037f), 4.f});
+    leftHip->addAnimation(lhipkf, 4);
 
     Joint *leftKnee = new Joint{"leftKnee", leftHip,
                                  glm::vec3(-0.25f, -0.375f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
@@ -321,6 +362,13 @@ std::vector<Joint*> Joint::setupSkeleton() {
     lkneekf.push_back({glm::quat(-0.983f, 0.f, 0.f, 0.182f), 5.f});
     lkneekf.push_back({glm::quat(-0.985f, 0.f, 0.f, 0.172f), 6.f});
     leftKnee->addAnimation(lkneekf, 6);
+    lkneekf.clear();
+    lkneekf.push_back({glm::quat(0.994f, 0.f, 0.f, 0.106f), 0.f});
+    lkneekf.push_back({glm::quat(0.991f, 0.f, 0.f, 0.137f), 1.f});
+    lkneekf.push_back({glm::quat(0.994f, 0.f, 0.f, 0.106f), 2.f});
+    lkneekf.push_back({glm::quat(0.979f, 0.f, 0.f, 0.205f), 3.f});
+    lkneekf.push_back({glm::quat(0.994f, 0.f, 0.f, 0.106f), 4.f});
+    leftKnee->addAnimation(lkneekf, 4);
 
     Joint *leftAnkle = new Joint{"leftAnkle", leftKnee,
                                  glm::vec3(-0.25f, -0.375f, 0.f), glm::quat(1.f, 0.f, 0.f, 0.f),
@@ -404,5 +452,35 @@ void Joint::drawCircle(glm::vec3 c, float r, int param, glm::vec3 color,
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+    glUseProgram(0);
+}
+
+void Joint::drawArc(glm::vec3 c, float r, float a0, float a1,
+             int param, glm::vec3 color, glm::mat4 VP,
+             GLuint shader, GLuint vao, GLuint vbo)
+{
+    std::vector<float> vertices(3 * param);
+
+    for (int i = 0; i < param; i++) {
+        float t = float(i) / (param - 1);
+        float theta = a0 + t * (a1 - a0);
+
+        vertices[3*i + 0] = c.x + r * cos(theta);
+        vertices[3*i + 1] = c.y + r * sin(theta);
+        vertices[3*i + 2] = c.z;
+    }
+
+    glUseProgram(shader);
+    glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, &color[0]);
+    glUniformMatrix4fv(glGetUniformLocation(shader, "uVP"), 1, GL_FALSE, &VP[0][0]);
+
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(float), vertices.data());
+
+    glDrawArrays(GL_LINE_STRIP, 0, param);
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glUseProgram(0);
 }

@@ -20,10 +20,12 @@ public:
 
 private:
     void connectUIElements();
-    void connectParam1();
-    void connectParam2();
-    void connectNear();
-    void connectFar();
+    void connectHead();
+    void connectForearm();
+    void connectUpperarm();
+    void connectThigh();
+    void connectCalf();
+    void connectBody();
     void connectx();
     void connecty();
     void connectz();
@@ -53,14 +55,18 @@ private:
 
     QPushButton *uploadFile;
     QPushButton *saveImage;
-    QSlider *p1Slider;
-    QSlider *p2Slider;
-    QSpinBox *p1Box;
-    QSpinBox *p2Box;
-    QSlider *nearSlider;
-    QSlider *farSlider;
-    QDoubleSpinBox *nearBox;
-    QDoubleSpinBox *farBox;
+    QSlider *headSlider;
+    QSlider *forearmSlider;
+    QSlider *upperarmSlider;
+    QSlider *thighSlider;
+    QSlider *calfSlider;
+    QSlider *bodySlider;
+    QDoubleSpinBox *headBox;
+    QDoubleSpinBox *forearmBox;
+    QDoubleSpinBox *upperarmBox;
+    QDoubleSpinBox *thighBox;
+    QDoubleSpinBox *calfBox;
+    QDoubleSpinBox *bodyBox;
 
     QRadioButton *renderNormals;
     QRadioButton *renderVertices;
@@ -109,11 +115,12 @@ private slots:
     void onUploadFile();
     void onSaveImage();
 
-    void onValChangeP1(int newValue);
-    void onValChangeP2(int newValue);
-
-    void onValChangeNearSlider(int newValue);
-    void onValChangeFarSlider(int newValue);
+    void onValChangeHeadSlider(int newValue);
+    void onValChangeForearmSlider(int newValue);
+    void onValChangeUpperarmSlider(int newValue);
+    void onValChangeThighSlider(int newValue);
+    void onValChangeCalfSlider(int newValue);
+    void onValChangeBodySlider(int newValue);
 
     void onRenderNormalsChange();
     void onRenderVerticesChange();
@@ -141,9 +148,12 @@ private slots:
 
 
 
-
-    void onValChangeNearBox(double newValue);
-    void onValChangeFarBox(double newValue);
+    void onValChangeHeadBox(double newValue);
+    void onValChangeForearmBox(double newValue);
+    void onValChangeUpperarmBox(double newValue);
+    void onValChangeThighBox(double newValue);
+    void onValChangeCalfBox(double newValue);
+    void onValChangeBodyBox(double newValue);
 
     void onValChangexBox(double newValue);
     void onValChangeyBox(double newValue);

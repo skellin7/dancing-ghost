@@ -6,16 +6,23 @@
 
 struct Settings {
     std::string sceneFilePath;
-    int shapeParameter1 = 1;
-    int shapeParameter2 = 1;
-    float nearPlane = 1;
-    float farPlane = 1;
+    int shapeParameter1 = 25;
+    int shapeParameter2 = 25;
+    float nearPlane = 0.1f;
+    float farPlane = 100.f;
     bool perPixelFilter = false;
     bool kernelBasedFilter = false;
     bool extraCredit1 = false;
     bool extraCredit2 = false;
     bool extraCredit3 = false;
     bool extraCredit4 = false;
+
+    float headRadius = 0.2f;
+    float forearmLength = 0.5f;
+    float upperarmLength = 0.5f;
+    float thighLength = 0.5f;
+    float calfLength = 0.5f;
+    float bodyLength = 0.5f;
 
     float structuralK = 50;
     float shearK = 25;

@@ -42,21 +42,25 @@ void MainWindow::initialize() {
     QLabel *camera_label = new QLabel(); // Camera label
     camera_label->setText("Camera");
     camera_label->setFont(font);
-    QLabel *anim_label = new QLabel(); // Animation label
-    anim_label->setText("Animation");
-    anim_label->setFont(font);
+    QLabel *fig_label = new QLabel(); // Stick figure label
+    fig_label->setText("Stick Figure");
+    fig_label->setFont(font);
     QLabel *cloth_label = new QLabel(); // Cloth label
     cloth_label->setText("Cloth");
     cloth_label->setFont(font);
 
-    QLabel *param1_label = new QLabel(); // Parameter 1 label
-    param1_label->setText("Parameter 1:");
-    QLabel *param2_label = new QLabel(); // Parameter 2 label
-    param2_label->setText("Parameter 2:");
-    QLabel *near_label = new QLabel(); // Near plane label
-    near_label->setText("Near Plane:");
-    QLabel *far_label = new QLabel(); // Far plane label
-    far_label->setText("Far Plane:");
+    QLabel *head_label = new QLabel();
+    head_label->setText("Head radius:");
+    QLabel *forearm_label = new QLabel();
+    forearm_label->setText("Forearm length:");
+    QLabel *upperarm_label = new QLabel();
+    upperarm_label->setText("Upper arm length:");
+    QLabel *thigh_label = new QLabel();
+    thigh_label->setText("Thigh length:");
+    QLabel *calf_label = new QLabel();
+    calf_label->setText("Calf length:");
+    QLabel *body_label = new QLabel();
+    body_label->setText("Body length:");
 
     renderNormals = new QRadioButton();
     renderNormals->setText(QStringLiteral("render as normals"));
@@ -111,85 +115,114 @@ void MainWindow::initialize() {
     saveImage = new QPushButton();
     saveImage->setText(QStringLiteral("Save Image"));
 
-    // Creates the boxes containing the parameter sliders and number boxes
-    QGroupBox *p1Layout = new QGroupBox(); // horizonal slider 1 alignment
-    QHBoxLayout *l1 = new QHBoxLayout();
-    QGroupBox *p2Layout = new QGroupBox(); // horizonal slider 2 alignment
-    QHBoxLayout *l2 = new QHBoxLayout();
+    QGroupBox *headLayout = new QGroupBox();
+    QHBoxLayout *lhead = new QHBoxLayout();
+    QGroupBox *forearmLayout = new QGroupBox();
+    QHBoxLayout *lforearm = new QHBoxLayout();
+    QGroupBox *upperarmLayout = new QGroupBox();
+    QHBoxLayout *lupperarm = new QHBoxLayout();
+    QGroupBox *thighLayout = new QGroupBox();
+    QHBoxLayout *lthigh = new QHBoxLayout();
+    QGroupBox *calfLayout = new QGroupBox();
+    QHBoxLayout *lcalf = new QHBoxLayout();
+    QGroupBox *bodyLayout = new QGroupBox();
+    QHBoxLayout *lbody = new QHBoxLayout();
 
-    // Create slider controls to control parameters
-    p1Slider = new QSlider(Qt::Orientation::Horizontal); // Parameter 1 slider
-    p1Slider->setTickInterval(1);
-    p1Slider->setMinimum(1);
-    p1Slider->setMaximum(25);
-    p1Slider->setValue(1);
+    headSlider = new QSlider(Qt::Orientation::Horizontal);
+    headSlider->setTickInterval(1);
+    headSlider->setMinimum(2);
+    headSlider->setMaximum(14);
+    headSlider->setValue(4);
 
-    p1Box = new QSpinBox();
-    p1Box->setMinimum(1);
-    p1Box->setMaximum(25);
-    p1Box->setSingleStep(1);
-    p1Box->setValue(1);
+    headBox = new QDoubleSpinBox();
+    headBox->setMinimum(0.1f);
+    headBox->setMaximum(0.7f);
+    headBox->setSingleStep(0.05f);
+    headBox->setValue(0.2f);
 
-    p2Slider = new QSlider(Qt::Orientation::Horizontal); // Parameter 2 slider
-    p2Slider->setTickInterval(1);
-    p2Slider->setMinimum(1);
-    p2Slider->setMaximum(25);
-    p2Slider->setValue(1);
+    forearmSlider = new QSlider(Qt::Orientation::Horizontal);
+    forearmSlider->setTickInterval(1);
+    forearmSlider->setMinimum(4);
+    forearmSlider->setMaximum(16);
+    forearmSlider->setValue(10);
 
-    p2Box = new QSpinBox();
-    p2Box->setMinimum(1);
-    p2Box->setMaximum(25);
-    p2Box->setSingleStep(1);
-    p2Box->setValue(1);
+    forearmBox = new QDoubleSpinBox();
+    forearmBox->setMinimum(0.2f);
+    forearmBox->setMaximum(0.8f);
+    forearmBox->setSingleStep(0.05f);
+    forearmBox->setValue(0.5f);
 
-    // Adds the slider and number box to the parameter layouts
-    l1->addWidget(p1Slider);
-    l1->addWidget(p1Box);
-    p1Layout->setLayout(l1);
+    upperarmSlider = new QSlider(Qt::Orientation::Horizontal);
+    upperarmSlider->setTickInterval(1);
+    upperarmSlider->setMinimum(4);
+    upperarmSlider->setMaximum(16);
+    upperarmSlider->setValue(10);
 
-    l2->addWidget(p2Slider);
-    l2->addWidget(p2Box);
-    p2Layout->setLayout(l2);
+    upperarmBox = new QDoubleSpinBox();
+    upperarmBox->setMinimum(0.2f);
+    upperarmBox->setMaximum(0.8f);
+    upperarmBox->setSingleStep(0.05f);
+    upperarmBox->setValue(0.5f);
 
-    // Creates the boxes containing the camera sliders and number boxes
-    QGroupBox *nearLayout = new QGroupBox(); // horizonal near slider alignment
-    QHBoxLayout *lnear = new QHBoxLayout();
-    QGroupBox *farLayout = new QGroupBox(); // horizonal far slider alignment
-    QHBoxLayout *lfar = new QHBoxLayout();
+    thighSlider = new QSlider(Qt::Orientation::Horizontal);
+    thighSlider->setTickInterval(1);
+    thighSlider->setMinimum(4);
+    thighSlider->setMaximum(16);
+    thighSlider->setValue(10);
 
-    // Create slider controls to control near/far planes
-    nearSlider = new QSlider(Qt::Orientation::Horizontal); // Near plane slider
-    nearSlider->setTickInterval(1);
-    nearSlider->setMinimum(1);
-    nearSlider->setMaximum(1000);
-    nearSlider->setValue(10);
+    thighBox = new QDoubleSpinBox();
+    thighBox->setMinimum(0.2f);
+    thighBox->setMaximum(0.8f);
+    thighBox->setSingleStep(0.05f);
+    thighBox->setValue(0.5f);
 
-    nearBox = new QDoubleSpinBox();
-    nearBox->setMinimum(0.01f);
-    nearBox->setMaximum(10.f);
-    nearBox->setSingleStep(0.1f);
-    nearBox->setValue(0.1f);
+    calfSlider = new QSlider(Qt::Orientation::Horizontal);
+    calfSlider->setTickInterval(1);
+    calfSlider->setMinimum(4);
+    calfSlider->setMaximum(16);
+    calfSlider->setValue(10);
 
-    farSlider = new QSlider(Qt::Orientation::Horizontal); // Far plane slider
-    farSlider->setTickInterval(1);
-    farSlider->setMinimum(1000);
-    farSlider->setMaximum(10000);
-    farSlider->setValue(10000);
+    calfBox = new QDoubleSpinBox();
+    calfBox->setMinimum(0.2f);
+    calfBox->setMaximum(0.8f);
+    calfBox->setSingleStep(0.05f);
+    calfBox->setValue(0.5f);
 
-    farBox = new QDoubleSpinBox();
-    farBox->setMinimum(10.f);
-    farBox->setMaximum(100.f);
-    farBox->setSingleStep(0.1f);
-    farBox->setValue(100.f);
+    bodySlider = new QSlider(Qt::Orientation::Horizontal);
+    bodySlider->setTickInterval(1);
+    bodySlider->setMinimum(4);
+    bodySlider->setMaximum(16);
+    bodySlider->setValue(10);
 
-    // Adds the slider and number box to the parameter layouts
-    lnear->addWidget(nearSlider);
-    lnear->addWidget(nearBox);
-    nearLayout->setLayout(lnear);
+    bodyBox = new QDoubleSpinBox();
+    bodyBox->setMinimum(0.2);
+    bodyBox->setMaximum(0.8);
+    bodyBox->setSingleStep(0.05);
+    bodyBox->setValue(0.5);
 
-    lfar->addWidget(farSlider);
-    lfar->addWidget(farBox);
-    farLayout->setLayout(lfar);
+    lhead->addWidget(headSlider);
+    lhead->addWidget(headBox);
+    headLayout->setLayout(lhead);
+
+    lforearm->addWidget(forearmSlider);
+    lforearm->addWidget(forearmBox);
+    forearmLayout->setLayout(lforearm);
+
+    lupperarm->addWidget(upperarmSlider);
+    lupperarm->addWidget(upperarmBox);
+    upperarmLayout->setLayout(lupperarm);
+
+    lthigh->addWidget(thighSlider);
+    lthigh->addWidget(thighBox);
+    thighLayout->setLayout(lthigh);
+
+    lcalf->addWidget(calfSlider);
+    lcalf->addWidget(calfBox);
+    calfLayout->setLayout(lcalf);
+
+    lbody->addWidget(bodySlider);
+    lbody->addWidget(bodyBox);
+    bodyLayout->setLayout(lbody);
 
     // Creates the boxes contgaining the xyz position of cloth anchor (bottom left)
     QGroupBox *xLayout = new QGroupBox();
@@ -514,18 +547,20 @@ void MainWindow::initialize() {
 
     vLayout->addWidget(uploadFile);
     vLayout->addWidget(saveImage);
-    // vLayout->addWidget(tesselation_label);
-    // vLayout->addWidget(param1_label);
-    // vLayout->addWidget(p1Layout);
-    // vLayout->addWidget(param2_label);
-    // vLayout->addWidget(p2Layout);
-    // vLayout->addWidget(camera_label);
-    // vLayout->addWidget(near_label);
-    // vLayout->addWidget(nearLayout);
-    // vLayout->addWidget(far_label);
-    // vLayout->addWidget(farLayout);
 
-    // vLayout->addWidget(anim_label);
+    vLayout->addWidget(fig_label);
+    vLayout->addWidget(head_label);
+    vLayout->addWidget(headLayout);
+    vLayout->addWidget(forearm_label);
+    vLayout->addWidget(forearmLayout);
+    vLayout->addWidget(upperarm_label);
+    vLayout->addWidget(upperarmLayout);
+    vLayout->addWidget(thigh_label);
+    vLayout->addWidget(thighLayout);
+    vLayout->addWidget(calf_label);
+    vLayout->addWidget(calfLayout);
+    vLayout->addWidget(body_label);
+    vLayout->addWidget(bodyLayout);
 
     vLayout->addWidget(cloth_label);
     vLayout->addWidget(renderNormals);
@@ -572,14 +607,12 @@ void MainWindow::initialize() {
 
     connectUIElements();
 
-    // Set default values of 5 for tesselation parameters
-    onValChangeP1(25);
-    onValChangeP2(25);
-
-    // Set default values for near and far planes
-    onValChangeNearBox(0.1f);
-    // onValChangeFarBox(10.f);
-    onValChangeFarBox(100.f);
+    onValChangeHeadBox(0.2);
+    onValChangeForearmBox(0.5);
+    onValChangeUpperarmBox(0.5);
+    onValChangeThighBox(0.5);
+    onValChangeCalfBox(0.5);
+    onValChangeBodyBox(0.5);
 
     // Set default values for xyz position of cloth anchor (bottom left)
     onValChangexBox(-1.f);
@@ -623,10 +656,12 @@ void MainWindow::finish() {
 void MainWindow::connectUIElements() {
     connectUploadFile();
     connectSaveImage();
-    connectParam1();
-    connectParam2();
-    connectNear();
-    connectFar();
+    connectHead();
+    connectForearm();
+    connectUpperarm();
+    connectThigh();
+    connectCalf();
+    connectBody();
     connectx();
     connecty();
     connectz();
@@ -656,28 +691,40 @@ void MainWindow::connectSaveImage() {
     connect(saveImage, &QPushButton::clicked, this, &MainWindow::onSaveImage);
 }
 
-void MainWindow::connectParam1() {
-    connect(p1Slider, &QSlider::valueChanged, this, &MainWindow::onValChangeP1);
-    connect(p1Box, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &MainWindow::onValChangeP1);
+void MainWindow::connectHead() {
+    connect(headSlider, &QSlider::valueChanged, this, &MainWindow::onValChangeHeadSlider);
+    connect(headBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &MainWindow::onValChangeHeadBox);
 }
 
-void MainWindow::connectParam2() {
-    connect(p2Slider, &QSlider::valueChanged, this, &MainWindow::onValChangeP2);
-    connect(p2Box, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-            this, &MainWindow::onValChangeP2);
+void MainWindow::connectForearm() {
+    connect(forearmSlider, &QSlider::valueChanged, this, &MainWindow::onValChangeForearmSlider);
+    connect(forearmBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &MainWindow::onValChangeForearmBox);
 }
 
-void MainWindow::connectNear() {
-    connect(nearSlider, &QSlider::valueChanged, this, &MainWindow::onValChangeNearSlider);
-    connect(nearBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-            this, &MainWindow::onValChangeNearBox);
+void MainWindow::connectUpperarm() {
+    connect(upperarmSlider, &QSlider::valueChanged, this, &MainWindow::onValChangeUpperarmSlider);
+    connect(upperarmBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &MainWindow::onValChangeUpperarmBox);
 }
 
-void MainWindow::connectFar() {
-    connect(farSlider, &QSlider::valueChanged, this, &MainWindow::onValChangeFarSlider);
-    connect(farBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
-            this, &MainWindow::onValChangeFarBox);
+void MainWindow::connectThigh() {
+    connect(thighSlider, &QSlider::valueChanged, this, &MainWindow::onValChangeThighSlider);
+    connect(thighBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &MainWindow::onValChangeThighBox);
+}
+
+void MainWindow::connectCalf() {
+    connect(calfSlider, &QSlider::valueChanged, this, &MainWindow::onValChangeCalfSlider);
+    connect(calfBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &MainWindow::onValChangeCalfBox);
+}
+
+void MainWindow::connectBody() {
+    connect(bodySlider, &QSlider::valueChanged, this, &MainWindow::onValChangeBodySlider);
+    connect(bodyBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged),
+            this, &MainWindow::onValChangeBodyBox);
 }
 
 void MainWindow::connectx() {
@@ -820,31 +867,45 @@ void MainWindow::onSaveImage() {
     realtime->saveViewportImage(filePath.toStdString());
 }
 
-void MainWindow::onValChangeP1(int newValue) {
-    p1Slider->setValue(newValue);
-    p1Box->setValue(newValue);
-    settings.shapeParameter1 = p1Slider->value();
+void MainWindow::onValChangeHeadSlider(int newValue) {
+    // headSlider->setValue(newValue);
+    headBox->setValue(newValue / 20.f);
+    settings.headRadius = headSlider->value() / 20.f;
     realtime->settingsChanged();
 }
 
-void MainWindow::onValChangeP2(int newValue) {
-    p2Slider->setValue(newValue);
-    p2Box->setValue(newValue);
-    settings.shapeParameter2 = p2Slider->value();
+void MainWindow::onValChangeForearmSlider(int newValue) {
+    // forearmSlider->setValue(newValue);
+    forearmBox->setValue(newValue / 20.f);
+    settings.forearmLength = forearmSlider->value() / 20.f;
     realtime->settingsChanged();
 }
 
-void MainWindow::onValChangeNearSlider(int newValue) {
-    //nearSlider->setValue(newValue);
-    nearBox->setValue(newValue/100.f);
-    settings.nearPlane = nearBox->value();
+void MainWindow::onValChangeUpperarmSlider(int newValue) {
+    // upperarmSlider->setValue(newValue);
+    upperarmBox->setValue(newValue / 20.f);
+    settings.upperarmLength = upperarmSlider->value() / 20.f;
     realtime->settingsChanged();
 }
 
-void MainWindow::onValChangeFarSlider(int newValue) {
-    //farSlider->setValue(newValue);
-    farBox->setValue(newValue/100.f);
-    settings.farPlane = farBox->value();
+void MainWindow::onValChangeThighSlider(int newValue) {
+    // thighSlider->setValue(newValue);
+    thighBox->setValue(newValue / 20.f);
+    settings.thighLength = thighSlider->value() / 20.f;
+    realtime->settingsChanged();
+}
+
+void MainWindow::onValChangeCalfSlider(int newValue) {
+    // calfSlider->setValue(newValue);
+    calfBox->setValue(newValue / 20.f);
+    settings.calfLength = calfSlider->value() / 20.f;
+    realtime->settingsChanged();
+}
+
+void MainWindow::onValChangeBodySlider(int newValue) {
+    // bodySlider->setValue(newValue);
+    bodyBox->setValue(newValue / 20.f);
+    settings.bodyLength = bodySlider->value() / 20.f;
     realtime->settingsChanged();
 }
 
@@ -966,17 +1027,45 @@ void MainWindow::onValChangeClothToClothCorrectionSlider(int newValue) {
     realtime->settingsChanged();
 }
 
-void MainWindow::onValChangeNearBox(double newValue) {
-    nearSlider->setValue(int(newValue*100.f));
+void MainWindow::onValChangeHeadBox(double newValue) {
+    headSlider->setValue(int(newValue*20.f));
     //nearBox->setValue(newValue);
-    settings.nearPlane = nearBox->value();
+    settings.headRadius = headBox->value();
     realtime->settingsChanged();
 }
 
-void MainWindow::onValChangeFarBox(double newValue) {
-    farSlider->setValue(int(newValue*100.f));
+void MainWindow::onValChangeForearmBox(double newValue) {
+    forearmSlider->setValue(int(newValue*20.f));
     //farBox->setValue(newValue);
-    settings.farPlane = farBox->value();
+    settings.forearmLength = forearmBox->value();
+    realtime->settingsChanged();
+}
+
+void MainWindow::onValChangeUpperarmBox(double newValue) {
+    upperarmSlider->setValue(int(newValue*20.f));
+    //nearBox->setValue(newValue);
+    settings.upperarmLength = upperarmBox->value();
+    realtime->settingsChanged();
+}
+
+void MainWindow::onValChangeThighBox(double newValue) {
+    thighSlider->setValue(int(newValue*20.f));
+    //farBox->setValue(newValue);
+    settings.thighLength = thighBox->value();
+    realtime->settingsChanged();
+}
+
+void MainWindow::onValChangeCalfBox(double newValue) {
+    calfSlider->setValue(int(newValue*20.f));
+    //nearBox->setValue(newValue);
+    settings.calfLength = calfBox->value();
+    realtime->settingsChanged();
+}
+
+void MainWindow::onValChangeBodyBox(double newValue) {
+    bodySlider->setValue(int(newValue*20.f));
+    //farBox->setValue(newValue);
+    settings.bodyLength = bodyBox->value();
     realtime->settingsChanged();
 }
 
