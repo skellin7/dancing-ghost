@@ -25,5 +25,5 @@ Sarah Liao, Kelly Lin
 #### Known Bugs
 
 * Individual limb control through mouse movement works unless camera/figure location is too far from origin, where mouse tracking calculations mean that target location is far off from actual desired location.
-* Initial cloth generation may appear to properly collide with figure; adjusting cloth to shape collision slider will fix issue.
+* Initial cloth generation may appear to not properly collide with figure; adjusting the cloth to shape collision slider will fix issue.
 * If cloth behaves oddly, regenerate cloth or tune various parameters.
